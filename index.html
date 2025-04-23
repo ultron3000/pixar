@@ -42,7 +42,7 @@
     h1 {
       font-size: 4rem;
       margin-top: 50px;
-      text-shadow: 2px 2px 10px #000;
+      text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.7);
       font-family: 'Helvetica', sans-serif;
       font-weight: bold;
       color: #ffcc00; /* Pixar Yellow */
@@ -80,14 +80,15 @@
 
     .movie-card a {
       text-decoration: none;
-      color: #fff;
+      color: #333; /* Dark text for contrast */
       font-size: 1.2rem;
       font-weight: bold;
       transition: color 0.3s ease;
+      text-shadow: 1px 1px 5px rgba(0, 0, 0, 0.7); /* Text shadow for better visibility */
     }
 
     .movie-card a:hover {
-      color: #ffcc00;
+      color: #ffcc00; /* Highlight color on hover */
     }
 
     /* Back to home button */
@@ -166,7 +167,8 @@
     <div class="movie-card"><a href="abugslife.html">A Bug's Life</a></div>
   </div>
 
-  
+  <!-- Back to Home button -->
+  <br><a href="index.html" class="back-button">← Back to Home</a>
 
 </body>
 </html>
