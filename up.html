@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Up - Pixar Movie</title>
+  <style>
+    body { margin: 0; background: #000; color: #fff; font-family: sans-serif; text-align: center; }
+    video { width: 90%; max-width: 900px; margin-top: 40px; border-radius: 10px; }
+    .back-button {
+      margin-top: 30px;
+      padding: 10px 20px;
+      background: #c00;
+      color: #fff;
+      text-decoration: none;
+      border-radius: 8px;
+    }
+    .back-button:hover { background: #900; }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+</head>
+<body>
+  <h1>Up</h1>
+  <video id="video" controls autoplay>
+    <source src="https://f12.megacdn.co:2228/v3-hls-playback/b9b65d54164d3f6c0fb2be6c95a833e2f99d5a4386c8dddb15ed15c4580e5340e444ef6cce00fde2ccfc3127ad7cd26017a9b08f4a211c77cb94bb57b3fbbb5195e078521cfc7cf6f6569eba03ef408bfd0897b877a2cbeb083fbbe8172283d9f3c9b4b2432e4d8bbcf1ccc50db5ad9adfc3bd515d84e1e7a0f2148475557460cfdf8d200784d63b6ffdee90b137f5af16cf55521dc57bf664e62955080e0c05304b9a3f84b29bbba93467399cde5298a8fbfffa3f159c0a1f7e067903536959/1080/index.m3u8" type="application/x-mpegURL">
+  </video>
+  <br><a href="index.html" class="back-button">← Back to Pixar Collection</a>
+
+  <script>
+    var video = document.getElementById('video');
+    if (Hls.isSupported()) {
+      var hls = new Hls();
+      hls.loadSource('https://f12.megacdn.co:2228/v3-hls-playback/b9b65d54164d3f6c0fb2be6c95a833e2f99d5a4386c8dddb15ed15c4580e5340e444ef6cce00fde2ccfc3127ad7cd26017a9b08f4a211c77cb94bb57b3fbbb5195e078521cfc7cf6f6569eba03ef408bfd0897b877a2cbeb083fbbe8172283d9f3c9b4b2432e4d8bbcf1ccc50db5ad9adfc3bd515d84e1e7a0f2148475557460cfdf8d200784d63b6ffdee90b137f5af16cf55521dc57bf664e62955080e0c05304b9a3f84b29bbba93467399cde5298a8fbfffa3f159c0a1f7e067903536959/1080/index.m3u8');
+      hls.attachMedia(video);
+      hls.on(Hls.Events.MANIFEST_PARSED, function () {
+        console.log("HLS.js is working and the video is loaded.");
+      });
+    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+      video.src = 'https://f12.megacdn.co:2228/v3-hls-playback/b9b65d54164d3f6c0fb2be6c95a833e2f99d5a4386c8dddb15ed15c4580e5340e444ef6cce00fde2ccfc3127ad7cd26017a9b08f4a211c77cb94bb57b3fbbb5195e078521cfc7cf6f6569eba03ef408bfd0897b877a2cbeb083fbbe8172283d9f3c9b4b2432e4d8bbcf1ccc50db5ad9adfc3bd515d84e1e7a0f2148475557460cfdf8d200784d63b6ffdee90b137f5af16cf55521dc57bf664e62955080e0c05304b9a3f84b29bbba93467399cde5298a8fbfffa3f159c0a1f7e067903536959/1080/index.m3u8';
+    }
+  </script>
+</body>
+</html>
