@@ -14,7 +14,9 @@
       display: flex;
       flex-direction: column;
       justify-content: center;
+      position: relative;
     }
+
     /* Background setup */
     .background {
       position: absolute;
@@ -26,7 +28,8 @@
       background-size: cover;
       z-index: -1;
     }
-    /* Dark overlay */
+
+    /* Dark overlay for better text visibility */
     .overlay {
       position: absolute;
       top: 0;
@@ -35,6 +38,7 @@
       height: 100%;
       background: rgba(0, 0, 0, 0.5);
     }
+
     h1 {
       font-size: 4rem;
       margin-top: 50px;
@@ -42,7 +46,9 @@
       font-family: 'Helvetica', sans-serif;
       font-weight: bold;
       color: #ffcc00; /* Pixar Yellow */
+      z-index: 1;
     }
+
     /* Movie container */
     .movie-container {
       display: flex;
@@ -51,7 +57,9 @@
       gap: 20px;
       margin-top: 50px;
       padding: 20px;
+      z-index: 1;
     }
+
     /* Movie card styles */
     .movie-card {
       background: rgba(255, 255, 255, 0.2);
@@ -63,11 +71,13 @@
       text-align: center;
       backdrop-filter: blur(8px);
     }
+
     .movie-card:hover {
       transform: scale(1.05);
       background: rgba(255, 255, 255, 0.3);
       cursor: pointer;
     }
+
     .movie-card a {
       text-decoration: none;
       color: #fff;
@@ -75,9 +85,12 @@
       font-weight: bold;
       transition: color 0.3s ease;
     }
+
     .movie-card a:hover {
       color: #ffcc00;
     }
+
+    /* Back to home button */
     .back-button {
       margin-top: 30px;
       padding: 12px 24px;
@@ -86,7 +99,9 @@
       text-decoration: none;
       border-radius: 10px;
       font-size: 1rem;
+      z-index: 1;
     }
+
     .back-button:hover {
       background-color: #900;
     }
@@ -151,6 +166,7 @@
     <div class="movie-card"><a href="abugslife.html">A Bug's Life</a></div>
   </div>
 
-  <br><a href="index.html" class="back-button">← Back to Home</a>
+  
+
 </body>
 </html>
