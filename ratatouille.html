@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Ratatouille - Pixar Movie</title>
+  <style>
+    body { margin: 0; background: #000; color: #fff; font-family: sans-serif; text-align: center; }
+    video { width: 90%; max-width: 900px; margin-top: 40px; border-radius: 10px; }
+    .back-button {
+      margin-top: 30px;
+      padding: 10px 20px;
+      background: #c00;
+      color: #fff;
+      text-decoration: none;
+      border-radius: 8px;
+    }
+    .back-button:hover { background: #900; }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+</head>
+<body>
+  <h1>Ratatouille</h1>
+  <video id="video" controls autoplay>
+    <source src="https://smashyplayer.top:443/hls/baPs8vMfovyhGyknuto30g/sc/ghsd6zxw/pw3r1/tt/index-f2-v1-a1.m3u8" type="application/x-mpegURL">
+  </video>
+  <br><a href="index.html" class="back-button">← Back to Pixar Collection</a>
+
+  <script>
+    var video = document.getElementById('video');
+    if (Hls.isSupported()) {
+      var hls = new Hls();
+      hls.loadSource('https://smashyplayer.top:443/hls/baPs8vMfovyhGyknuto30g/sc/ghsd6zxw/pw3r1/tt/index-f2-v1-a1.m3u8');
+      hls.attachMedia(video);
+      hls.on(Hls.Events.MANIFEST_PARSED, function () {
+        console.log("HLS.js is working and the video is loaded.");
+      });
+    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+      video.src = 'https://smashyplayer.top:443/hls/baPs8vMfovyhGyknuto30g/sc/ghsd6zxw/pw3r1/tt/index-f2-v1-a1.m3u8';
+    }
+  </script>
+</body>
+</html>
