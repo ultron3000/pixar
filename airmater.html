@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Air Mater - Pixar Movie</title>
+  <style>
+    body { margin: 0; background: #000; color: #fff; font-family: sans-serif; text-align: center; }
+    video { width: 90%; max-width: 900px; margin-top: 40px; border-radius: 10px; }
+    .back-button {
+      margin-top: 30px;
+      padding: 10px 20px;
+      background: #c00;
+      color: #fff;
+      text-decoration: none;
+      border-radius: 8px;
+    }
+    .back-button:hover { background: #900; }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+</head>
+<body>
+  <h1>Air Mater</h1>
+  <video id="video" controls autoplay>
+    <source src="https://tmstr1.shadowlandschronicles.com/pl/H4sIAAAAAAAAAw3G0XaCIBgA4FdCzMrdzYRcO9L6VUTuUNhBNI5rrRlPv91850tUvx1QbDZ6qxOM9mkUfe57g3e7wfyrX6pDShuf8drRn3MBNyYkdPgNgdPAigs2gqmhPo1G0MfwTB3zDKkj60qRRbxgH9pJ3sxWAOW_Opx8Ny.kJ3CtpjXhxH7JmDwrT6nM5a0s9LZqubsIvmicWonX2XDm6wn.X2LWfsfGl0GjCemIZn2tE.X4o58XZoouKDevEF4RJ7yEaYn72s4sp7m5ynBuLNQkuZujFCDAsgY9IZ8fg79sFJfXvl0PgAEpr.9yZr4c04q77H3Iu8AJjMwvaxMs1sJK1XZRQ9ZRBpT.AXeBq2hBAQAA/master.m3u8" type="application/x-mpegURL">
+  </video>
+  <br><a href="index.html" class="back-button">← Back to Pixar Collection</a>
+
+  <script>
+    var video = document.getElementById('video');
+    if (Hls.isSupported()) {
+      var hls = new Hls();
+      hls.loadSource('https://tmstr1.shadowlandschronicles.com/pl/H4sIAAAAAAAAAw3G0XaCIBgA4FdCzMrdzYRcO9L6VUTuUNhBNI5rrRlPv91850tUvx1QbDZ6qxOM9mkUfe57g3e7wfyrX6pDShuf8drRn3MBNyYkdPgNgdPAigs2gqmhPo1G0MfwTB3zDKkj60qRRbxgH9pJ3sxWAOW_Opx8Ny.kJ3CtpjXhxH7JmDwrT6nM5a0s9LZqubsIvmicWonX2XDm6wn.X2LWfsfGl0GjCemIZn2tE.X4o58XZoouKDevEF4RJ7yEaYn72s4sp7m5ynBuLNQkuZujFCDAsgY9IZ8fg79sFJfXvl0PgAEpr.9yZr4c04q77H3Iu8AJjMwvaxMs1sJK1XZRQ9ZRBpT.AXeBq2hBAQAA/master.m3u8');
+      hls.attachMedia(video);
+      hls.on(Hls.Events.MANIFEST_PARSED, function () {
+        console.log("HLS.js is working and the video is loaded.");
+      });
+    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+      video.src = 'https://tmstr1.shadowlandschronicles.com/pl/H4sIAAAAAAAAAw3G0XaCIBgA4FdCzMrdzYRcO9L6VUTuUNhBNI5rrRlPv91850tUvx1QbDZ6qxOM9mkUfe57g3e7wfyrX6pDShuf8drRn3MBNyYkdPgNgdPAigs2gqmhPo1G0MfwTB3zDKkj60qRRbxgH9pJ3sxWAOW_Opx8Ny.kJ3CtpjXhxH7JmDwrT6nM5a0s9LZqubsIvmicWonX2XDm6wn.X2LWfsfGl0GjCemIZn2tE.X4o58XZoouKDevEF4RJ7yEaYn72s4sp7m5ynBuLNQkuZujFCDAsgY9IZ8fg79sFJfXvl0PgAEpr.9yZr4c04q77H3Iu8AJjMwvaxMs1sJK1XZRQ9ZRBpT.AXeBq2hBAQAA/master.m3u8';
+    }
+  </script>
+</body>
+</html>
