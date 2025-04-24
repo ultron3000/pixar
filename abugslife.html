@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>A Bug's Life - Pixar Movie</title>
+  <style>
+    body { margin: 0; background: #000; color: #fff; font-family: sans-serif; text-align: center; }
+    video { width: 90%; max-width: 900px; margin-top: 40px; border-radius: 10px; }
+    .back-button {
+      margin-top: 30px;
+      padding: 10px 20px;
+      background: #c00;
+      color: #fff;
+      text-decoration: none;
+      border-radius: 8px;
+    }
+    .back-button:hover { background: #900; }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+</head>
+<body>
+  <h1>A Bug's Life</h1>
+  <video id="video" controls autoplay>
+    <source src="https://slob.squiressill.sbs:443/v4/db/inpxt/index-f2-v1-a1.txt" type="application/x-mpegURL">
+  </video>
+  <br><a href="index.html" class="back-button">← Back to Pixar Collection</a>
+
+  <script>
+    var video = document.getElementById('video');
+    if (Hls.isSupported()) {
+      var hls = new Hls();
+      hls.loadSource('https://slob.squiressill.sbs:443/v4/db/inpxt/index-f2-v1-a1.txt');
+      hls.attachMedia(video);
+      hls.on(Hls.Events.MANIFEST_PARSED, function () {
+        console.log("HLS.js is working and the video is loaded.");
+      });
+    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+      video.src = 'https://slob.squiressill.sbs:443/v4/db/inpxt/index-f2-v1-a1.txt';
+    }
+  </script>
+</body>
+</html>
