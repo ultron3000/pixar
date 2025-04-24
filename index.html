@@ -17,6 +17,7 @@
       position: relative;
     }
 
+    /* Background setup */
     .background {
       position: absolute;
       top: 0;
@@ -28,6 +29,7 @@
       z-index: -1;
     }
 
+    /* Dark overlay for better text visibility */
     .overlay {
       position: absolute;
       top: 0;
@@ -43,9 +45,10 @@
       text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.7);
       font-family: 'Helvetica', sans-serif;
       font-weight: bold;
-      color: #ffcc00;
+      color: #ffcc00; /* Pixar Yellow */
     }
 
+    /* Movie container */
     .movie-container {
       display: flex;
       flex-wrap: wrap;
@@ -55,9 +58,10 @@
       padding: 20px;
     }
 
+    /* Movie card styles */
     .movie-card {
       background: rgba(255, 255, 255, 0.2);
-      border: 2px solid #ffcc00;
+      border: 2px solid #ffcc00; /* Pixar Yellow */
       border-radius: 12px;
       padding: 20px;
       width: 200px;
@@ -74,16 +78,18 @@
 
     .movie-card a {
       text-decoration: none;
-      color: #333;
+      color: #333; /* Dark text for contrast */
       font-size: 1.2rem;
       font-weight: bold;
       transition: color 0.3s ease;
+      text-shadow: 1px 1px 5px rgba(0, 0, 0, 0.7); /* Text shadow for better visibility */
     }
 
     .movie-card a:hover {
-      color: #ffcc00;
+      color: #ffcc00; /* Highlight color on hover */
     }
 
+    /* Back to home button */
     .back-button {
       margin-top: 30px;
       padding: 12px 24px;
@@ -97,6 +103,7 @@
       background-color: #900;
     }
 
+    /* Mobile responsiveness */
     @media (max-width: 768px) {
       h1 {
         font-size: 2rem;
@@ -108,25 +115,26 @@
       }
 
       .movie-card {
-        width: 80%;
+        width: 80%; /* Make movie cards take up more space on mobile */
         margin-bottom: 15px;
       }
     }
 
     @media (max-width: 480px) {
       .movie-card {
-        width: 90%;
+        width: 90%; /* Make movie cards take up more space on very small screens */
         font-size: 1rem;
       }
 
       h1 {
-        font-size: 1.8rem;
+        font-size: 1.8rem; /* Smaller font size for h1 */
       }
     }
   </style>
 </head>
 <body>
 
+  <!-- Background and overlay -->
   <div class="background"></div>
   <div class="overlay"></div>
 
@@ -137,8 +145,54 @@
     <div class="movie-card"><a href="elemental.html">Elemental</a></div>
     <div class="movie-card"><a href="insideout.html">Inside Out</a></div>
     <div class="movie-card"><a href="insideout2.html">Inside Out 2</a></div>
+    <div class="movie-card"><a href="rileysfirstdate.html">Riley's First Date?</a></div>
+    <div class="movie-card"><a href="lightyear.html">Lightyear</a></div>
+    <div class="movie-card"><a href="turningred.html">Turning Red</a></div>
+    <div class="movie-card"><a href="luca.html">Luca</a></div>
+    <div class="movie-card"><a href="ciaoalberto.html">Ciao Alberto</a></div>
+    <div class="movie-card"><a href="soul.html">Soul</a></div>
+    <div class="movie-card"><a href="onward.html">Onward</a></div>
+    <div class="movie-card"><a href="findingnemo.html">Finding Nemo</a></div>
+    <div class="movie-card"><a href="findingdory.html">Finding Dory</a></div>
+    <div class="movie-card"><a href="dorysreef.html">Dory's Reef Cam</a></div>
+    <div class="movie-card"><a href="theincredibles.html">The Incredibles</a></div>
+    <div class="movie-card"><a href="incredibles2.html">Incredibles 2</a></div>
+    <div class="movie-card"><a href="auntiedna.html">Auntie Edna</a></div>
+    <div class="movie-card"><a href="coco.html">Coco</a></div>
+    <div class="movie-card"><a href="cars.html">Cars</a></div>
+    <div class="movie-card"><a href="cars2.html">Cars 2</a></div>
+    <div class="movie-card"><a href="cars3.html">Cars 3</a></div>
+    <div class="movie-card"><a href="airmater.html">Air Mater</a></div>
     <div class="movie-card"><a href="carstoonsmaterstalls.html">Cars Toon: Mater's Tall Tales</a></div>
+    <div class="movie-card"><a href="thegooddinosaur.html">The Good Dinosaur</a></div>
+    <div class="movie-card"><a href="up.html">Up</a></div>
+    <div class="movie-card"><a href="monstersuniversity.html">Monsters University</a></div>
+    <div class="movie-card"><a href="monstersinc.html">Monsters, Inc.</a></div>
+    <div class="movie-card"><a href="partycentral.html">Party Central</a></div>
+    <div class="movie-card"><a href="ratatouille.html">Ratatouille</a></div>
+    <div class="movie-card"><a href="yourfriendtherat.html">Your Friend the Rat</a></div>
+    <div class="movie-card"><a href="toystory.html">Toy Story</a></div>
+    <div class="movie-card"><a href="toystory2.html">Toy Story 2</a></div>
+    <div class="movie-card"><a href="toystory3.html">Toy Story 3</a></div>
+    <div class="movie-card"><a href="toystory4.html">Toy Story 4</a></div>
+    <div class="movie-card"><a href="toystorythatimeforgot.html">Toy Story That Time Forgot</a></div>
+    <div class="movie-card"><a href="toystoryofterror.html">Toy Story of Terror!</a></div>
+    <div class="movie-card"><a href="lamplife.html">Lamp Life</a></div>
+    <div class="movie-card"><a href="brave.html">Brave</a></div>
+    <div class="movie-card"><a href="carlsdate.html">Carl's Date</a></div>
+    <div class="movie-card"><a href="22vsEarth.html">22 vs. Earth</a></div>
+    <div class="movie-card"><a href="loop.html">Loop</a></div>
+    <div class="movie-card"><a href="purl.html">Purl</a></div>
+    <div class="movie-card"><a href="float.html">Float</a></div>
+    <div class="movie-card"><a href="lou.html">Lou</a></div>
+    <div class="movie-card"><a href="piper.html">Piper</a></div>
+    <div class="movie-card"><a href="lava.html">Lava</a></div>
+    <div class="movie-card"><a href="partlycloudy.html">Partly Cloudy</a></div>
+    <div class="movie-card"><a href="abugslife.html">A Bug's Life</a></div>
   </div>
+
+  <!-- Back to Home button -->
+  <br><a href="index.html" class="back-button">Back to Home</a>
 
 </body>
 </html>
