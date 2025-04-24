@@ -4,8 +4,19 @@
   <meta charset="UTF-8">
   <title>22 vs. Earth - Pixar Movie</title>
   <style>
-    body { margin: 0; background: #000; color: #fff; font-family: sans-serif; text-align: center; }
-    video { width: 90%; max-width: 900px; margin-top: 40px; border-radius: 10px; }
+    body { 
+      margin: 0; 
+      background: #000; 
+      color: #fff; 
+      font-family: sans-serif; 
+      text-align: center; 
+    }
+    video { 
+      width: 90%; 
+      max-width: 900px; 
+      margin-top: 40px; 
+      border-radius: 10px; 
+    }
     .back-button {
       margin-top: 30px;
       padding: 10px 20px;
@@ -14,14 +25,17 @@
       text-decoration: none;
       border-radius: 8px;
     }
-    .back-button:hover { background: #900; }
+    .back-button:hover { 
+      background: #900; 
+    }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 </head>
 <body>
   <h1>22 vs. Earth</h1>
-  <video id="video" controls autoplay>
-    <source src="https://s3ae.myersbjhardi.sbs:443/v4/k5/jwexl/index-f1-v1-a1.txt" type="application/x-mpegURL">
+  <video id="video" controls>
+    <source src="https://s3ae.myersbjhardi.sbs:443/v4/k5/jwexl/index-f1-v1-a1.m3u8" type="application/x-mpegURL">
+    Your browser does not support the video tag.
   </video>
   <br><a href="index.html" class="back-button">← Back to Pixar Collection</a>
 
@@ -29,13 +43,13 @@
     var video = document.getElementById('video');
     if (Hls.isSupported()) {
       var hls = new Hls();
-      hls.loadSource('https://s3ae.myersbjhardi.sbs:443/v4/k5/jwexl/index-f1-v1-a1.txt');
+      hls.loadSource('https://s3ae.myersbjhardi.sbs:443/v4/k5/jwexl/index-f1-v1-a1.m3u8');
       hls.attachMedia(video);
       hls.on(Hls.Events.MANIFEST_PARSED, function () {
         console.log("HLS.js is working and the video is loaded.");
       });
     } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-      video.src = 'https://s3ae.myersbjhardi.sbs:443/v4/k5/jwexl/index-f1-v1-a1.txt';
+      video.src = 'https://s3ae.myersbjhardi.sbs:443/v4/k5/jwexl/index-f1-v1-a1.m3u8';
     }
   </script>
 </body>
