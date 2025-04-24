@@ -33,8 +33,8 @@
 </head>
 <body>
   <h1>Cars Toon: Mater's Tall Tales</h1>
-  <video id="video" controls autoplay>
-    <source src="https://sojg.pouloszcleed.sbs:443/v4/61/cdfwx/index-f2-v1-a1.txt" type="application/x-mpegURL">
+  <video id="video" controls>
+    <source src="https://sojg.pouloszcleed.sbs:443/v4/61/cdfwx/index-f2-v1-a1.m3u8" type="application/x-mpegURL">
   </video>
   <br><a href="index.html" class="back-button">← Back to Pixar Collection</a>
 
@@ -42,13 +42,13 @@
     var video = document.getElementById('video');
     if (Hls.isSupported()) {
       var hls = new Hls();
-      hls.loadSource('https://sojg.pouloszcleed.sbs:443/v4/61/cdfwx/index-f2-v1-a1.txt');
+      hls.loadSource('https://sojg.pouloszcleed.sbs:443/v4/61/cdfwx/index-f2-v1-a1.m3u8');
       hls.attachMedia(video);
       hls.on(Hls.Events.MANIFEST_PARSED, function () {
         console.log("HLS.js is working and the video is loaded.");
       });
     } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-      video.src = 'https://sojg.pouloszcleed.sbs:443/v4/61/cdfwx/index-f2-v1-a1.txt';
+      video.src = 'https://sojg.pouloszcleed.sbs:443/v4/61/cdfwx/index-f2-v1-a1.m3u8';
     }
   </script>
 </body>
