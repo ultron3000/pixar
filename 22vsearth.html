@@ -34,7 +34,7 @@
 <body>
   <h1>22 vs. Earth</h1>
   <video id="video" controls>
-    <source src="https://s3ae.myersbjhardi.sbs:443/v4/k5/jwexl/index-f1-v1-a1.m3u8" type="application/x-mpegURL">
+    <source src="https://f6.megacdn.co:2228/v3-hls-playback/7668b8452e05779957e68ea4d65529b40ee0198ae360bf88c5b36d09db9f95e47acd001c21a885cc3cde631c88d40ca83d85b52f1c0d2ecce455b8a20c58001949c3a867559ee41885dcc115db9f51ca881a643eed0892e1cd2b6bcf934061ecd9291f9496276877e0a1517ed01d408100e078fbc8afc631ba206acdff27ce5ebdd8801e1ee8cc47996fd76c9c8abdf1db7e947cc44c193908f97e03daf64d413d57482daeb40a930e0b1a06eb04fc7252836fad640ecfed564083a41c050f4d/1080/index.m3u8" type="application/x-mpegURL">
     Your browser does not support the video tag.
   </video>
   <br><a href="index.html" class="back-button">← Back to Pixar Collection</a>
@@ -43,7 +43,7 @@
     var video = document.getElementById('video');
     if (Hls.isSupported()) {
       var hls = new Hls();
-      hls.loadSource('https://s3ae.myersbjhardi.sbs:443/v4/k5/jwexl/index-f1-v1-a1.m3u8');
+      hls.loadSource('https://f6.megacdn.co:2228/v3-hls-playback/7668b8452e05779957e68ea4d65529b40ee0198ae360bf88c5b36d09db9f95e47acd001c21a885cc3cde631c88d40ca83d85b52f1c0d2ecce455b8a20c58001949c3a867559ee41885dcc115db9f51ca881a643eed0892e1cd2b6bcf934061ecd9291f9496276877e0a1517ed01d408100e078fbc8afc631ba206acdff27ce5ebdd8801e1ee8cc47996fd76c9c8abdf1db7e947cc44c193908f97e03daf64d413d57482daeb40a930e0b1a06eb04fc7252836fad640ecfed564083a41c050f4d/1080/index.m3u8');
       hls.attachMedia(video);
       hls.on(Hls.Events.MANIFEST_PARSED, function () {
         console.log("HLS.js is working and the video is loaded.");
