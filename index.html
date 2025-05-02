@@ -136,6 +136,23 @@
         font-size: 1.8rem; /* Smaller font size for h1 */
       }
     }
+  
+    @media (max-width: 600px) {
+      .movie-container {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+        padding: 10px;
+      }
+      .movie-card {
+        width: 100%;
+        box-sizing: border-box;
+      }
+      .movie-card img {
+        height: auto;
+      }
+    }
+
   </style>
 </head>
 <body>
