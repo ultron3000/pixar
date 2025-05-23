@@ -4,193 +4,587 @@
   <meta charset="UTF-8">
   <title>Movie Player</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
-    body {
-      background: black;
-      color: #ffcc00;
-      font-family: Arial, sans-serif;
-      text-align: center;
-      margin: 0;
-      padding: 20px;
-    }
-    h1 {
-      margin-bottom: 20px;
-      font-size: 2em;
-    }
-    video {
-      width: 90%;
-      max-width: 1000px;
-      border: 3px solid #ffcc00;
-      border-radius: 15px;
-      background: #000;
-    }
-    #loading-spinner {
-      display: none;
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      width: 60px;
-      height: 60px;
-      margin: -30px 0 0 -30px;
-      border: 8px solid #f3f3f3;
-      border-top: 8px solid #ffcc00;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-      z-index: 999;
-    }
-    #loading-text {
-      display: none;
-      position: fixed;
-      top: 60%;
-      left: 50%;
-      transform: translateX(-50%);
-      font-size: 1.2em;
-      font-weight: bold;
-    }
-    .caption-button {
-      margin-top: 10px;
-      background: #ffcc00;
-      color: black;
-      border: none;
-      padding: 8px 16px;
-      font-size: 1em;
-      border-radius: 8px;
-      cursor: pointer;
-    }
-    a {
-      display: inline-block;
-      margin-top: 20px;
-      color: #ffcc00;
-      font-weight: bold;
-      text-decoration: none;
-      font-size: 1.2em;
-    }
     @keyframes spin {
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
     }
+    .loading-spinner {
+      border: 4px solid rgba(255, 255, 255, 0.1);
+      border-top: 4px solid #f59e0b;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+    }
+    .video-container {
+      position: relative;
+      max-width: 1200px;
+      margin: 0 auto;
+      overflow: hidden;
+      border-radius: 0.75rem;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.4);
+    }
+    .video-controls {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+      padding: 1rem;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    .video-container:hover .video-controls {
+      opacity: 1;
+    }
+    .progress-container {
+      height: 6px;
+      background-color: rgba(255,255,255,0.2);
+      border-radius: 3px;
+      cursor: pointer;
+      margin-bottom: 0.5rem;
+    }
+    .progress-bar {
+      height: 100%;
+      background-color: #f59e0b;
+      border-radius: 3px;
+      width: 0%;
+    }
+    .volume-container {
+      display: flex;
+      align-items: center;
+      width: 100px;
+    }
+    .volume-slider {
+      width: 0;
+      opacity: 0;
+      transition: all 0.3s ease;
+    }
+    .volume-control:hover .volume-slider {
+      width: 80px;
+      opacity: 1;
+      margin-left: 0.5rem;
+    }
+    .settings-menu {
+      position: absolute;
+      bottom: 60px;
+      right: 20px;
+      background-color: rgba(0,0,0,0.8);
+      border-radius: 0.5rem;
+      padding: 0.5rem;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+    }
+    .settings-btn.active + .settings-menu {
+      opacity: 1;
+      visibility: visible;
+    }
+    .quality-option:hover, .subtitle-option:hover {
+      background-color: rgba(255,255,255,0.1);
+    }
+    .tooltip {
+      position: absolute;
+      bottom: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: rgba(0,0,0,0.8);
+      color: white;
+      padding: 0.25rem 0.5rem;
+      border-radius: 0.25rem;
+      font-size: 0.75rem;
+      white-space: nowrap;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      pointer-events: none;
+    }
+    .control-btn:hover .tooltip {
+      opacity: 1;
+    }
+    .fullscreen-btn {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      background-color: rgba(0,0,0,0.5);
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 10;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    .video-container:hover .fullscreen-btn {
+      opacity: 1;
+    }
+    :fullscreen .video-controls {
+      padding-bottom: 2rem;
+    }
+    .backdrop {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+      z-index: -1;
+    }
   </style>
-  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 </head>
-<body>
+<body class="bg-gray-900 text-amber-500 min-h-screen flex flex-col">
+  <div class="backdrop"></div>
+  
+  <div class="container mx-auto px-4 py-8 flex-1">
+    <!-- Header -->
+    <header class="flex justify-between items-center mb-6">
+      <a href="index.html" class="flex items-center text-amber-500 hover:text-amber-400 transition-colors">
+        <i class="fas fa-arrow-left mr-2"></i>
+        <span class="font-bold">Back to Movies</span>
+      </a>
+      <h1 id="movie-title" class="text-3xl font-bold truncate max-w-md md:max-w-2xl text-center">Loading Movie...</h1>
+      <div class="w-20"></div> <!-- Spacer for balance -->
+    </header>
+    
+    <!-- Loading State -->
+    <div id="loading-state" class="flex flex-col items-center justify-center py-20">
+      <div class="loading-spinner mb-4"></div>
+      <p class="text-xl font-semibold">Loading movie...</p>
+    </div>
+    
+    <!-- Video Player -->
+    <div class="video-container hidden" id="player-container">
+      <video id="video" class="w-full" crossorigin="anonymous"></video>
+      
+      <!-- Fullscreen Button -->
+      <div class="fullscreen-btn" id="fullscreen-btn">
+        <i class="fas fa-expand text-white"></i>
+      </div>
+      
+      <!-- Video Controls -->
+      <div class="video-controls">
+        <div class="progress-container" id="progress-container">
+          <div class="progress-bar" id="progress-bar"></div>
+        </div>
+        
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-4">
+            <!-- Play/Pause -->
+            <button class="control-btn" id="play-btn">
+              <i class="fas fa-play text-white text-xl"></i>
+              <span class="tooltip">Play/Pause (Space)</span>
+            </button>
+            
+            <!-- Volume -->
+            <div class="volume-control flex items-center">
+              <button class="control-btn" id="volume-btn">
+                <i class="fas fa-volume-up text-white text-xl"></i>
+                <span class="tooltip">Volume</span>
+              </button>
+              <input type="range" min="0" max="1" step="0.01" value="1" class="volume-slider" id="volume-slider">
+            </div>
+            
+            <!-- Time Display -->
+            <div class="text-white text-sm font-mono">
+              <span id="current-time">00:00</span> / <span id="duration">00:00</span>
+            </div>
+          </div>
+          
+          <div class="flex items-center space-x-4">
+            <!-- Speed -->
+            <div class="relative">
+              <button class="control-btn" id="speed-btn">
+                <span class="font-bold">1x</span>
+                <span class="tooltip">Playback Speed</span>
+              </button>
+              <div class="settings-menu" id="speed-menu">
+                <div class="speed-option px-3 py-1 rounded cursor-pointer hover:bg-gray-700" data-speed="0.5">0.5x</div>
+                <div class="speed-option px-3 py-1 rounded cursor-pointer hover:bg-gray-700" data-speed="0.75">0.75x</div>
+                <div class="speed-option px-3 py-1 rounded cursor-pointer hover:bg-gray-700" data-speed="1">1x</div>
+                <div class="speed-option px-3 py-1 rounded cursor-pointer hover:bg-gray-700" data-speed="1.25">1.25x</div>
+                <div class="speed-option px-3 py-1 rounded cursor-pointer hover:bg-gray-700" data-speed="1.5">1.5x</div>
+                <div class="speed-option px-3 py-1 rounded cursor-pointer hover:bg-gray-700" data-speed="2">2x</div>
+              </div>
+            </div>
+            
+            <!-- Subtitles -->
+            <div class="relative">
+              <button class="control-btn settings-btn" id="subtitle-btn">
+                <i class="fas fa-closed-captioning text-white text-xl"></i>
+                <span class="tooltip">Subtitles</span>
+              </button>
+              <div class="settings-menu" id="subtitle-menu">
+                <div class="subtitle-option px-3 py-1 rounded cursor-pointer" data-lang="off">Off</div>
+                <div class="subtitle-option px-3 py-1 rounded cursor-pointer" data-lang="en">English</div>
+              </div>
+            </div>
+            
+            <!-- Settings -->
+            <div class="relative">
+              <button class="control-btn settings-btn" id="settings-btn">
+                <i class="fas fa-cog text-white text-xl"></i>
+                <span class="tooltip">Settings</span>
+              </button>
+              <div class="settings-menu" id="settings-menu">
+                <div class="quality-option px-3 py-1 rounded cursor-pointer" data-quality="auto">Auto Quality</div>
+                <div class="quality-option px-3 py-1 rounded cursor-pointer" data-quality="720">720p</div>
+                <div class="quality-option px-3 py-1 rounded cursor-pointer" data-quality="480">480p</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Error State -->
+    <div id="error-state" class="hidden flex flex-col items-center justify-center py-20">
+      <i class="fas fa-exclamation-triangle text-4xl text-red-500 mb-4"></i>
+      <p class="text-xl font-semibold mb-2">Error Loading Movie</p>
+      <p class="text-gray-400 mb-6" id="error-message"></p>
+      <button id="retry-btn" class="bg-amber-600 hover:bg-amber-700 text-white px-6 py-2 rounded-lg font-medium transition-colors">
+        Retry
+      </button>
+    </div>
+  </div>
+  
+  <!-- Footer -->
+  <footer class="bg-gray-800 py-4">
+    <div class="container mx-auto px-4 text-center text-gray-400 text-sm">
+      <p>Resume playback is enabled. Your progress is saved automatically.</p>
+    </div>
+  </footer>
 
-<div id="loading-spinner"></div>
-<div id="loading-text">Loading movie...</div>
-
-<h1 id="movie-title">Loading...</h1>
-
-<video id="video" controls autoplay crossorigin="anonymous"></video>
-
-<br>
-<button class="caption-button" id="toggle-captions">Toggle Subtitles</button>
-<br><br>
-
-<a href="index.html">← Back to Movies</a>
-
-<script>
-const params = new URLSearchParams(window.location.search);
-const title = params.get('title');
-const videoUrl = params.get('video');
-const subtitleUrl = params.get('subtitle');
-const index = parseInt(params.get('index'), 10);
-
-const movieTitle = document.getElementById('movie-title');
-const video = document.getElementById('video');
-const spinner = document.getElementById('loading-spinner');
-const loadingText = document.getElementById('loading-text');
-const toggleBtn = document.getElementById('toggle-captions');
-const saveKey = `continue-${title}`;
-
-movieTitle.textContent = title;
-showSpinner();
-
-function showSpinner() {
-  spinner.style.display = "block";
-  loadingText.style.display = "block";
-}
-
-function hideSpinner() {
-  spinner.style.display = "none";
-  loadingText.style.display = "none";
-}
-
-function playVideo(url) {
-  if (Hls.isSupported()) {
-    const hls = new Hls();
-    hls.loadSource(url);
-    hls.attachMedia(video);
-    hls.on(Hls.Events.MANIFEST_PARSED, () => {
-      video.play();
-      hideSpinner();
-      const lastTime = localStorage.getItem(saveKey);
-      if (lastTime) video.currentTime = parseFloat(lastTime);
-    });
-    hls.on(Hls.Events.ERROR, function (event, data) {
-      if (data.fatal) {
-        alert("A fatal playback error occurred: " + data.details);
-      } else {
-        console.warn("Non-fatal HLS error:", data.details);
-        // Don't alert the user
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Get URL parameters
+      const params = new URLSearchParams(window.location.search);
+      const title = params.get('title') || 'Movie';
+      const videoUrl = params.get('video');
+      const subtitleUrl = params.get('subtitle');
+      const saveKey = `continue-${title.replace(/\s+/g, '-').toLowerCase()}`;
+      
+      // DOM elements
+      const movieTitle = document.getElementById('movie-title');
+      const video = document.getElementById('video');
+      const loadingState = document.getElementById('loading-state');
+      const playerContainer = document.getElementById('player-container');
+      const errorState = document.getElementById('error-state');
+      const errorMessage = document.getElementById('error-message');
+      const retryBtn = document.getElementById('retry-btn');
+      
+      // Control elements
+      const playBtn = document.getElementById('play-btn');
+      const volumeBtn = document.getElementById('volume-btn');
+      const volumeSlider = document.getElementById('volume-slider');
+      const progressContainer = document.getElementById('progress-container');
+      const progressBar = document.getElementById('progress-bar');
+      const currentTimeEl = document.getElementById('current-time');
+      const durationEl = document.getElementById('duration');
+      const speedBtn = document.getElementById('speed-btn');
+      const speedMenu = document.getElementById('speed-menu');
+      const subtitleBtn = document.getElementById('subtitle-btn');
+      const subtitleMenu = document.getElementById('subtitle-menu');
+      const settingsBtn = document.getElementById('settings-btn');
+      const settingsMenu = document.getElementById('settings-menu');
+      const fullscreenBtn = document.getElementById('fullscreen-btn');
+      
+      // Set movie title
+      movieTitle.textContent = title;
+      
+      // Initialize HLS.js if supported
+      let hls;
+      if (Hls.isSupported()) {
+        hls = new Hls({
+          maxBufferLength: 30,
+          maxMaxBufferLength: 600,
+          maxBufferSize: 60 * 1000 * 1000,
+          maxBufferHole: 0.5,
+          lowLatencyMode: false,
+          enableWorker: true
+        });
       }
+      
+      // Load the video
+      function loadVideo() {
+        loadingState.classList.remove('hidden');
+        playerContainer.classList.add('hidden');
+        errorState.classList.add('hidden');
+        
+        if (hls) {
+          // HLS.js is supported
+          hls.loadSource(videoUrl);
+          hls.attachMedia(video);
+          
+          hls.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
+            console.log('Manifest loaded, found ' + data.levels.length + ' quality levels');
+            initializePlayer();
+          });
+          
+          hls.on(Hls.Events.ERROR, (event, data) => {
+            handleError(data.details);
+          });
+        } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+          // Native HLS support (Safari)
+          video.src = videoUrl;
+          video.addEventListener('loadedmetadata', initializePlayer);
+          video.addEventListener('error', () => {
+            handleError('Error loading video');
+          });
+        } else {
+          handleError('Your browser doesn\'t support HLS streaming');
+        }
+      }
+      
+      // Initialize player after video is ready
+      function initializePlayer() {
+        loadingState.classList.add('hidden');
+        playerContainer.classList.remove('hidden');
+        
+        // Load saved progress if available
+        const savedTime = localStorage.getItem(saveKey);
+        if (savedTime) {
+          video.currentTime = parseFloat(savedTime);
+        }
+        
+        // Set initial volume
+        video.volume = volumeSlider.value;
+        
+        // Play the video
+        video.play().catch(e => {
+          console.warn('Autoplay prevented:', e);
+          playBtn.querySelector('i').classList.replace('fa-play', 'fa-pause');
+        });
+        
+        // Set up event listeners
+        setupEventListeners();
+      }
+      
+      // Handle errors
+      function handleError(message) {
+        console.error('Player error:', message);
+        loadingState.classList.add('hidden');
+        playerContainer.classList.add('hidden');
+        errorState.classList.remove('hidden');
+        errorMessage.textContent = message;
+      }
+      
+      // Set up event listeners for controls
+      function setupEventListeners() {
+        // Play/Pause
+        playBtn.addEventListener('click', togglePlay);
+        video.addEventListener('click', togglePlay);
+        
+        // Volume
+        volumeBtn.addEventListener('click', toggleMute);
+        volumeSlider.addEventListener('input', setVolume);
+        
+        // Progress bar
+        progressContainer.addEventListener('click', scrub);
+        let mousedown = false;
+        progressContainer.addEventListener('mousedown', () => mousedown = true);
+        progressContainer.addEventListener('mousemove', (e) => mousedown && scrub(e));
+        progressContainer.addEventListener('mouseup', () => mousedown = false);
+        
+        // Time updates
+        video.addEventListener('timeupdate', updateProgress);
+        video.addEventListener('durationchange', updateDuration);
+        
+        // Speed controls
+        speedBtn.addEventListener('click', () => {
+          speedMenu.classList.toggle('hidden');
+        });
+        document.querySelectorAll('.speed-option').forEach(option => {
+          option.addEventListener('click', () => {
+            const speed = parseFloat(option.dataset.speed);
+            video.playbackRate = speed;
+            speedBtn.querySelector('span').textContent = `${speed}x`;
+            speedMenu.classList.add('hidden');
+          });
+        });
+        
+        // Subtitle controls
+        if (subtitleUrl) {
+          const track = document.createElement('track');
+          track.kind = 'subtitles';
+          track.label = 'English';
+          track.srclang = 'en';
+          track.src = subtitleUrl;
+          video.appendChild(track);
+          
+          subtitleBtn.addEventListener('click', () => {
+            subtitleMenu.classList.toggle('hidden');
+          });
+          
+          document.querySelectorAll('.subtitle-option').forEach(option => {
+            option.addEventListener('click', () => {
+              const lang = option.dataset.lang;
+              if (lang === 'off') {
+                video.textTracks[0].mode = 'hidden';
+              } else {
+                video.textTracks[0].mode = 'showing';
+              }
+              subtitleMenu.classList.add('hidden');
+            });
+          });
+        } else {
+          subtitleBtn.style.display = 'none';
+        }
+        
+        // Settings menu
+        settingsBtn.addEventListener('click', () => {
+          settingsMenu.classList.toggle('hidden');
+        });
+        
+        // Quality settings (HLS only)
+        if (hls) {
+          document.querySelectorAll('.quality-option').forEach(option => {
+            option.addEventListener('click', () => {
+              const quality = option.dataset.quality;
+              if (quality === 'auto') {
+                hls.currentLevel = -1;
+              } else {
+                const levels = hls.levels;
+                const selectedLevel = levels.findIndex(level => 
+                  level.height <= parseInt(quality)
+                );
+                hls.currentLevel = selectedLevel;
+              }
+              settingsMenu.classList.add('hidden');
+            });
+          });
+        } else {
+          settingsBtn.style.display = 'none';
+        }
+        
+        // Fullscreen
+        fullscreenBtn.addEventListener('click', toggleFullscreen);
+        
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+          switch (e.code) {
+            case 'Space':
+              e.preventDefault();
+              togglePlay();
+              break;
+            case 'ArrowRight':
+              video.currentTime += 5;
+              break;
+            case 'ArrowLeft':
+              video.currentTime -= 5;
+              break;
+            case 'KeyM':
+              toggleMute();
+              break;
+            case 'KeyF':
+              toggleFullscreen();
+              break;
+          }
+        });
+        
+        // Save progress periodically
+        setInterval(() => {
+          if (!isNaN(video.currentTime)) {
+            localStorage.setItem(saveKey, video.currentTime);
+          }
+        }, 5000);
+        
+        // Save progress on exit
+        window.addEventListener('beforeunload', () => {
+          if (!isNaN(video.currentTime)) {
+            localStorage.setItem(saveKey, video.currentTime);
+          }
+        });
+      }
+      
+      // Player control functions
+      function togglePlay() {
+        if (video.paused) {
+          video.play();
+          playBtn.querySelector('i').classList.replace('fa-play', 'fa-pause');
+        } else {
+          video.pause();
+          playBtn.querySelector('i').classList.replace('fa-pause', 'fa-play');
+        }
+      }
+      
+      function toggleMute() {
+        video.muted = !video.muted;
+        if (video.muted) {
+          volumeBtn.querySelector('i').classList.replace('fa-volume-up', 'fa-volume-mute');
+        } else {
+          volumeBtn.querySelector('i').classList.replace('fa-volume-mute', 'fa-volume-up');
+        }
+      }
+      
+      function setVolume() {
+        video.volume = volumeSlider.value;
+        video.muted = false;
+        if (video.volume === 0) {
+          volumeBtn.querySelector('i').classList.replace('fa-volume-up', 'fa-volume-mute');
+        } else {
+          volumeBtn.querySelector('i').classList.replace('fa-volume-mute', 'fa-volume-up');
+        }
+      }
+      
+      function updateProgress() {
+        const percent = (video.currentTime / video.duration) * 100;
+        progressBar.style.width = `${percent}%`;
+        currentTimeEl.textContent = formatTime(video.currentTime);
+      }
+      
+      function updateDuration() {
+        durationEl.textContent = formatTime(video.duration);
+      }
+      
+      function scrub(e) {
+        const scrubTime = (e.offsetX / progressContainer.offsetWidth) * video.duration;
+        video.currentTime = scrubTime;
+      }
+      
+      function toggleFullscreen() {
+        if (!document.fullscreenElement) {
+          playerContainer.requestFullscreen().catch(err => {
+            console.error('Fullscreen error:', err);
+          });
+          fullscreenBtn.querySelector('i').classList.replace('fa-expand', 'fa-compress');
+        } else {
+          document.exitFullscreen();
+          fullscreenBtn.querySelector('i').classList.replace('fa-compress', 'fa-expand');
+        }
+      }
+      
+      // Helper function to format time
+      function formatTime(seconds) {
+        const minutes = Math.floor(seconds / 60);
+        seconds = Math.floor(seconds % 60);
+        return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+      }
+      
+      // Retry button
+      retryBtn.addEventListener('click', loadVideo);
+      
+      // Initial load
+      loadVideo();
+      
+      // Close menus when clicking outside
+      document.addEventListener('click', (e) => {
+        if (!speedBtn.contains(e.target) && !speedMenu.contains(e.target)) {
+          speedMenu.classList.add('hidden');
+        }
+        if (!subtitleBtn.contains(e.target) && !subtitleMenu.contains(e.target)) {
+          subtitleMenu.classList.add('hidden');
+        }
+        if (!settingsBtn.contains(e.target) && !settingsMenu.contains(e.target)) {
+          settingsMenu.classList.add('hidden');
+        }
+      });
     });
-  } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
-    video.src = url;
-    video.addEventListener("loadedmetadata", () => {
-      video.play();
-      hideSpinner();
-      const lastTime = localStorage.getItem(saveKey);
-      if (lastTime) video.currentTime = parseFloat(lastTime);
-    });
-  } else {
-    alert("Your browser doesn't support HLS!");
-    window.location.href = "index.html";
-  }
-}
-
-playVideo(videoUrl);
-
-// Load subtitle if provided
-if (subtitleUrl) {
-  const track = document.createElement('track');
-  track.kind = 'subtitles';
-  track.label = 'English';
-  track.srclang = 'en';
-  track.src = subtitleUrl;
-  track.default = true;
-  video.appendChild(track);
-}
-
-// Save progress every 5 seconds
-setInterval(() => {
-  if (!isNaN(video.currentTime)) {
-    localStorage.setItem(saveKey, video.currentTime);
-  }
-}, 5000);
-
-// Save progress on exit
-window.addEventListener("beforeunload", () => {
-  if (!isNaN(video.currentTime)) {
-    localStorage.setItem(saveKey, video.currentTime);
-  }
-});
-
-// Toggle subtitles
-toggleBtn.addEventListener("click", () => {
-  for (const track of video.textTracks) {
-    track.mode = track.mode === "showing" ? "hidden" : "showing";
-  }
-});
-
-// Keyboard shortcuts
-document.addEventListener("keydown", (e) => {
-  if (e.code === "ArrowRight") video.currentTime += 10;
-  else if (e.code === "ArrowLeft") video.currentTime -= 10;
-  else if (e.code === "Space") {
-    e.preventDefault();
-    video.paused ? video.play() : video.pause();
-  }
-});
-</script>
-
+  </script>
 </body>
 </html>
