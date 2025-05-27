@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
 <meta charset="utf-8"/>
@@ -28,6 +27,7 @@
       transition: all 0.3s ease;
       transform-style: preserve-3d;
       perspective: 1000px;
+      cursor: pointer;
     }
     
     .movie-card:hover {
@@ -98,10 +98,50 @@
       border-radius: 4px;
     }
     
+    /* Modal styles */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0, 0, 0, 0.9);
+      z-index: 1000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+    }
+    
+    .modal-overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+    
+    .modal-container {
+      width: 90%;
+      max-width: 1000px;
+      background: #1e293b;
+      border-radius: 12px;
+      overflow: hidden;
+      transform: scale(0.9);
+      transition: transform 0.3s ease;
+    }
+    
+    .modal-overlay.active .modal-container {
+      transform: scale(1);
+    }
+    
     /* Responsive adjustments */
     @media (max-width: 640px) {
       .movie-card {
         width: 100%;
+      }
+      
+      .modal-container {
+        width: 95%;
       }
     }
   </style>
@@ -187,6 +227,33 @@
 <p class="text-sm mt-2">This is a fan-made project and not affiliated with Pixar Animation Studios.</p>
 </div>
 </footer>
+
+<!-- Video Modal -->
+<div class="modal-overlay" id="video-modal">
+  <div class="modal-container">
+    <div class="relative">
+      <button class="absolute top-4 right-4 z-50 text-white hover:text-yellow-500 text-2xl transition" id="close-modal">
+        <i class="fas fa-times"></i>
+      </button>
+      <div class="aspect-w-16 aspect-h-9">
+        <video class="w-full" controls id="modal-video" autoplay>
+          Your browser does not support the video tag.
+        </video>
+      </div>
+      <div class="p-6 text-white">
+        <div class="flex justify-between items-start mb-4">
+          <div>
+            <h3 class="text-2xl font-bold mb-1" id="modal-title"></h3>
+            <div class="text-gray-400 text-sm">
+              <span id="modal-year"></span> • ★ <span id="modal-rating"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
     // Enhanced movie data with categories and release years
     const movies = [
@@ -228,7 +295,7 @@
       { title: "Toy Story That Time Forgot", video: "https://s3ae.desrocherswick.sbs/v4/ck/xujkt/index-f2-v1-a1.txt", image: "https://i.pinimg.com/736x/ac/c7/b9/acc7b968fea622f39032d123b5a04497.jpg", category: "short", year: 2014 },
       { title: "Toy Story of Terror!", video: "https://skra.wesleykqpg.sbs:443/v4/61/r1t1k/index-f1-v1-a1.txt", image: "https://image.tmdb.org/t/p/original/oPBEnNP4Fg4gv9c0KBhchmtoG4H.jpg", category: "short", year: 2013 },
       { title: "Lamp Life", video: "https://skra.kimberlygxjeum.sbs:443/v4/pq/jwdtt/index-f2-v1-a1.txt", image: "https://m.media-amazon.com/images/M/MV5BYmQxNzA5YTYtNWZkZi00ZDM1LWFiYjgtMzdmMmJiNjNiMmMyXkEyXkFqcGc@._V1_FMjpg_UX1000_.jpg", category: "short", year: 2020 },
-      { title: "Brave", video: "https://qnmdbn1lucqr.cdn-centaurus.com:443/hls2/01/00363/gkw852ptkl8w_h/iframes-v1-a1.m3u8?t=FEsfe0nqC3nujQKQ5tpB_L4ekOH8EWTmn6q4R1sgPSU&s=1745451962&e=129600&f=1816149&srv=m2q5ea5w42hk&i=0.4&sp=500&p1=m2q5ea5w42hk&p2=m2q5ea5w42hk&asn=24554", image: "https://image.tmdb.org/t/p/original/L6qqU6Q3k4MmPojncNbT43FSTL.jpg", category: "feature", year: 2012 },
+      { title: "Brave", video: "https://macdn.hakunaymatata.com/resource/ece55123e8d22e059d444e467261a3ae.mp4?Expires=1749582553&Signature=qvpkzf0u-C4jhTO33vFVU4m--rDbvBPr1CeL1AsVTztZVD5fUJzeVJwzZ7x16wbkCw3PM8JyfJQpbkXA8090m9rQWhp9azny5XzPC1DHjIEkRA1a-oj4u-WiZRTlek~tQoLSTNP1YJiLj-BLirTH6bDiFhD3h~PvMYAYKDDhmAT6QNIspnSWTaufPqS8WLoD48tBCihULo06NEfK8tQ4~rXP~A8Fo-20DlK8tqMDKutzirWaqznZMZuhVrfsj9iNx5Nehg~FUoile66SZbb910~gm0dKoG1tUkaUl4vuLy97QFUs~j7zerNbTiN23m2XQunvHJ3I0bhDggQG79Dvbw__&Key-Pair-Id=KMHN1LQ1HEUPL", image: "https://image.tmdb.org/t/p/original/L6qqU6Q3k4MmPojncNbT43FSTL.jpg", category: "feature", year: 2022 },
       { title: "22 vs. Earth", video: "https://cdn-1.celestialodyssey.site/video-stream/a66dd7c8/playlist.m3u8", image: "https://m.media-amazon.com/images/M/MV5BODc5MGM0YzQtNDlmOS00NTMyLTg5YzYtNGU0YTc5NjU1NGE1XkEyXkFqcGc@._V1_.jpg", category: "short", year: 2021 },
       { title: "Loop", video: "https://sh9f.cortinala.sbs:443/v4/ck/tqn9q/index-f2-v1-a1.txt", image: "https://speakingofautismcom.wordpress.com/wp-content/uploads/2019/12/img_1643.jpg", category: "short", year: 2020 },
       { title: "Purl", video: "https://sj3l.wrendresslerle.sbs:443/v4/rw/h6dz3/index-f2-v1-a1.txt", image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTAHQTUlNh-wk4l8zGP7rOGM8EZ0ucf3qfn7EU5PF4AKZCtSEjpPQJCFb4etimfCQIE624&usqp=CAU", category: "short", year: 2019 },
@@ -237,7 +304,7 @@
       { title: "Piper", video: "https://sxic.mcentirecajigas.sbs/v4/k5/xlld9/index-f1-v1-a1.txt", image: "https://i.pinimg.com/736x/71/43/d0/7143d0e2d47e170a230a56f7a8ec0275.jpg", category: "short", year: 2016 },
       { title: "Lava", video: "https://skra.ulrikeumdqputm.sbs:443/v4/qu/tgn3o/index-f2-v1-a1.txt", image: "https://m.media-amazon.com/images/M/MV5BNmQ2NTAwMDktYWE5Mi00OTBkLWJiZmUtNGQ4MGM5NzMxOTRhXkEyXkFqcGc@._V1_FMjpg_UX1000_.jpg", category: "short", year: 2014 },
       { title: "Partly Cloudy", video: "https://sh9f.tiltonrigobert.sbs:443/v4/hz/no666/index-f1-v1-a1.txt", image: "https://i.pinimg.com/originals/de/00/22/de0022a3e8b016ffb9458a13fd43885f.jpg", category: "short", year: 2009 },
-      { title: "A Bug's Life", video: "https://slob.squiressill.sbs:443/v4/db/inpxt/index-f2-v1-a1.txt", image: "https://i.pinimg.com/474x/74/9e/67/749e67191044fb4ace982fa646a385a7.jpg", category: "feature", year: 1998 },
+      { title: "A Bug's Life", video: "https://slob.squiressill.sbs:443/v4/db/inpxt/index-f2-v1-a1.txt", image: "https://i.pinimg.com/474x/74/9e/67/749e67191044fb4ace982fa646a385a7.jpg", category: "feature", year: 1998 }
     ];
 
     // DOM elements
@@ -247,10 +314,57 @@
     const categoryBtns = document.querySelectorAll('.category-btn');
     const loading = document.getElementById('loading');
     const noResults = document.getElementById('noResults');
+    const videoModal = document.getElementById('video-modal');
+    const modalVideo = document.getElementById('modal-video');
+    const modalTitle = document.getElementById('modal-title');
+    const modalYear = document.getElementById('modal-year');
+    const closeModalBtn = document.getElementById('close-modal');
     
     // Current filter state
     let currentCategory = 'all';
     let currentSearch = '';
+    
+    // Check if URL is MP4
+    function isMP4(url) {
+      return /\.mp4($|\?)/i.test(url);
+    }
+    
+    // Check if URL is stream (M3U8 or TXT)
+    function isStream(url) {
+      return /\.(m3u8|txt)($|\?)/i.test(url);
+    }
+    
+    // Open modal with video
+    function openVideoModal(movie) {
+      modalTitle.textContent = movie.title;
+      modalYear.textContent = movie.year || "";
+      modalVideo.src = movie.video;
+      videoModal.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+    
+    // Close modal
+    function closeVideoModal() {
+      videoModal.classList.remove('active');
+      modalVideo.pause();
+      modalVideo.src = "";
+      document.body.style.overflow = '';
+    }
+    
+    // Handle movie click
+    function handleMovieClick(movie) {
+      if (isMP4(movie.video)) {
+        // Play MP4 in modal
+        openVideoModal(movie);
+      } else if (isStream(movie.video)) {
+        // Redirect streams to player.html
+        const url = `player.html?title=${encodeURIComponent(movie.title)}&video=${encodeURIComponent(movie.video)}`;
+        window.location.href = url;
+      } else {
+        // Default behavior for unknown formats
+        console.log("Unknown video format:", movie.video);
+      }
+    }
     
     // Display movies with animation
     function displayMovies(filteredMovies) {
@@ -290,13 +404,13 @@
             <div class="absolute top-2 right-2 bg-yellow-400 text-gray-900 px-2 py-1 rounded-full text-xs font-bold">
               PIXAR
             </div>
+            <div class="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity duration-300 bg-black bg-opacity-50">
+              <i class="fas fa-play text-4xl text-yellow-400"></i>
+            </div>
           </div>
         `;
         
-        div.onclick = () => {
-          const url = `player.html?title=${encodeURIComponent(movie.title)}&video=${encodeURIComponent(movie.video)}&index=${index}`;
-          window.location.href = url;
-        };
+        div.onclick = () => handleMovieClick(movie);
         
         container.appendChild(div);
       });
@@ -334,6 +448,13 @@
       });
     });
     
+    // Close modal when clicking overlay or close button
+    videoModal.addEventListener('click', function(e) {
+      if (e.target === this || e.target.closest('#close-modal')) {
+        closeVideoModal();
+      }
+    });
+    
     // Initialize
     window.addEventListener('DOMContentLoaded', () => {
       // Set default active category
@@ -345,60 +466,6 @@
         filterMovies();
       }, 800);
     });
-  
-
-    function isStream(url) {
-      return /\.(m3u8|txt)$/i.test(url);
-    }
-
-    function openModal(movie) {
-      document.getElementById('modal-title').textContent = movie.title;
-      document.getElementById('modal-year').textContent = movie.year || "";
-      document.getElementById('modal-rating').textContent = movie.rating || "Not rated";
-      const video = document.getElementById('modal-video');
-      video.src = movie.video;
-      document.getElementById('playback-modal').classList.remove('hidden');
-      document.body.style.overflow = 'hidden';
-      video.play();
-    }
-
-    function closeModalHandler() {
-      const modal = document.getElementById('playback-modal');
-      const video = document.getElementById('modal-video');
-      modal.classList.add('hidden');
-      video.pause();
-      video.src = "";
-      document.body.style.overflow = '';
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-      const closeModal = document.getElementById('close-modal');
-      if (closeModal) {
-        closeModal.addEventListener('click', closeModalHandler);
-      }
-    });
-    </script>
-
-<!-- Modal Player -->
-<div class="fixed inset-0 z-50 hidden items-center justify-center bg-black bg-opacity-90" id="playback-modal">
-<div class="relative w-full max-w-4xl bg-gray-900 rounded-xl overflow-hidden">
-<button class="absolute top-4 right-4 z-50 text-white hover:text-yellow-500 text-2xl transition" id="close-modal">
-<i class="fas fa-times"></i>
-</button>
-<div class="aspect-w-16 aspect-h-9">
-<video class="w-full" controls="" id="modal-video"></video>
-</div>
-<div class="p-6 text-white">
-<div class="flex justify-between items-start mb-4">
-<div>
-<h3 class="text-2xl font-bold mb-1" id="modal-title"></h3>
-<div class="text-gray-400 text-sm">
-<span id="modal-year"></span> • ★ <span id="modal-rating"></span>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
+</script>
 </body>
 </html>
