@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"/>
-<title>Pixar Universe</title>
+<title>Pixar Universe — Merged Playback</title>
 <meta content="width=device-width, initial-scale=1" name="viewport"/>
 <script src="https://cdn.tailwindcss.com"></script>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
@@ -133,7 +133,13 @@
     .modal-overlay.active .modal-container {
       transform: scale(1);
     }
-    
+
+    /* Controls styling */
+    .quality-btn { cursor: pointer; margin: 0 6px; padding: 6px 10px; border-radius: 6px; background: #374151; color: #fff; }
+    .quality-btn:hover { background: #4b5563; }
+    .control-btn { padding: 8px 12px; border-radius: 6px; background: #111827; color: #fbbf24; border: 1px solid rgba(251,191,36,0.12); }
+    .control-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
     /* Responsive adjustments */
     @media (max-width: 640px) {
       .movie-card {
@@ -228,18 +234,19 @@
 </div>
 </footer>
 
-<!-- Video Modal -->
-<div class="modal-overlay" id="video-modal">
+<!-- Upgraded Video Modal (Marvel-style features integrated into Pixar modal) -->
+<div class="modal-overlay" id="video-modal" aria-hidden="true">
   <div class="modal-container">
     <div class="relative">
       <button class="absolute top-4 right-4 z-50 text-white hover:text-yellow-500 text-2xl transition" id="close-modal">
         <i class="fas fa-times"></i>
       </button>
       <div class="aspect-w-16 aspect-h-9">
-        <video class="w-full" controls id="modal-video" autoplay>
+        <video class="w-full" controls id="modal-video" playsinline>
           Your browser does not support the video tag.
         </video>
       </div>
+
       <div class="p-6 text-white">
         <div class="flex justify-between items-start mb-4">
           <div>
@@ -249,13 +256,31 @@
             </div>
           </div>
         </div>
+
+        <!-- Controls row: Prev / Quality / Mute / Fullscreen / Next -->
+        <div class="flex items-center justify-between gap-4 mt-2">
+          <div>
+            <button id="prevBtn" class="control-btn"><i class="fas fa-step-backward mr-1"></i> Prev</button>
+            <button id="nextBtn" class="control-btn ml-2">Next <i class="fas fa-step-forward ml-1"></i></button>
+          </div>
+
+          <div id="qualityControls" class="flex items-center justify-center"></div>
+
+          <div>
+            <button id="muteBtn" class="control-btn"><i class="fas fa-volume-up mr-1"></i> Mute</button>
+            <button id="fullscreenBtn" class="control-btn ml-2"><i class="fas fa-expand mr-1"></i> Fullscreen</button>
+          </div>
+        </div>
+
+        <div id="playerError" class="hidden bg-red-900 text-white p-2 rounded mt-4 text-center"></div>
+        <div class="text-sm text-gray-400 mt-2">Keyboard: Space=Play/Pause, ←/→ seek, F=Fullscreen, N=Next, P=Prev, M=Mute</div>
       </div>
     </div>
   </div>
 </div>
 
 <script>
-    // Enhanced movie data with categories and release years
+    // ----- PIXAR movies dataset (kept intact from your uploaded Pixar file) -----
     const movies = [
       { title: "WALL·E", video: "https://sr81.bradburyg.sbs:443/v4/js/jgoag/index-f2-v1-a1.txt", image: "https://mir-s3-cdn-cf.behance.net/project_modules/hd/05c77b66174149.5b0d6304d6a65.jpg", category: "feature", year: 2008 },
       { title: "Elemental", video: "https://sskt.mcgarrydvan.sbs:443/v4/ho/bhpt8/index-f2-v1-a1.txt", image: "https://preview.redd.it/elemental-2023-is-among-pixars-most-successful-recent-v0-lukx1jjb0ybb1.jpg?width=640&crop=smart&auto=webp&s=3d11d7a266ecc1ab4fbacb90ef2f458ef98fd0cb", category: "feature", year: 2023 },
@@ -307,79 +332,66 @@
       { title: "A Bug's Life", video: "https://slob.squiressill.sbs:443/v4/db/inpxt/index-f2-v1-a1.txt", image: "https://i.pinimg.com/474x/74/9e/67/749e67191044fb4ace982fa646a385a7.jpg", category: "feature", year: 1998 }
     ];
 
-    // DOM elements
+    // ----- DOM elements -----
     const container = document.getElementById('movies');
     const searchBar = document.getElementById('searchBar');
     const clearSearch = document.getElementById('clearSearch');
     const categoryBtns = document.querySelectorAll('.category-btn');
     const loading = document.getElementById('loading');
     const noResults = document.getElementById('noResults');
+
+    // Modal elements (upgraded)
     const videoModal = document.getElementById('video-modal');
     const modalVideo = document.getElementById('modal-video');
     const modalTitle = document.getElementById('modal-title');
     const modalYear = document.getElementById('modal-year');
+    const modalRating = document.getElementById('modal-rating');
     const closeModalBtn = document.getElementById('close-modal');
-    
-    // Current filter state
+    const qualityControls = document.getElementById('qualityControls');
+    const playerError = document.getElementById('playerError');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const fullscreenBtn = document.getElementById('fullscreenBtn');
+    const muteBtn = document.getElementById('muteBtn');
+
+    // ----- state -----
     let currentCategory = 'all';
     let currentSearch = '';
-    
-    // Check if URL is MP4
+    let filteredCache = []; // current filtered array
+    let currentVideo = null; // { index: number, movie: {} }
+
+    // ----- helpers -----
     function isMP4(url) {
       return /\.mp4($|\?)/i.test(url);
     }
-    
-    // Check if URL is stream (M3U8 or TXT)
     function isStream(url) {
       return /\.(m3u8|txt)($|\?)/i.test(url);
     }
-    
-    // Open modal with video
-    function openVideoModal(movie) {
-      modalTitle.textContent = movie.title;
-      modalYear.textContent = movie.year || "";
-      modalVideo.src = movie.video;
-      videoModal.classList.add('active');
-      document.body.style.overflow = 'hidden';
+
+    function getFilteredMovies() {
+      const search = (currentSearch || '').trim().toLowerCase();
+      let res = movies.filter(m => {
+        const matchesCategory = currentCategory === 'all' || m.category === currentCategory;
+        const matchesSearch = !search || m.title.toLowerCase().includes(search);
+        return matchesCategory && matchesSearch;
+      });
+      // sort by year asc as in original
+      res.sort((a,b) => (a.year||0) - (b.year||0));
+      return res;
     }
-    
-    // Close modal
-    function closeVideoModal() {
-      videoModal.classList.remove('active');
-      modalVideo.pause();
-      modalVideo.src = "";
-      document.body.style.overflow = '';
-    }
-    
-    // Handle movie click
-    function handleMovieClick(movie) {
-      if (isMP4(movie.video)) {
-        // Play MP4 in modal
-        openVideoModal(movie);
-      } else if (isStream(movie.video)) {
-        // Redirect streams to player.html
-        const url = `player.html?title=${encodeURIComponent(movie.title)}&video=${encodeURIComponent(movie.video)}`;
-        window.location.href = url;
-      } else {
-        // Default behavior for unknown formats
-        console.log("Unknown video format:", movie.video);
-      }
-    }
-    
-    // Display movies with animation
-    function displayMovies(filteredMovies) {
+
+    // ----- render functions -----
+    function displayMovies(list) {
       container.innerHTML = '';
-      
-      if (filteredMovies.length === 0) {
+
+      if (!list || list.length === 0) {
         noResults.classList.remove('hidden');
         return;
       }
-      
       noResults.classList.add('hidden');
-      
-      filteredMovies.forEach((movie, index) => {
-        const delay = (index % 10) * 0.1; // Staggered animation
-        
+
+      list.forEach((movie, index) => {
+        const delay = (index % 10) * 0.05;
         const div = document.createElement('div');
         div.className = 'movie-card fade-in';
         div.style.animationDelay = `${delay}s`;
@@ -394,7 +406,7 @@
             <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-4 pt-10">
               <h3 class="text-lg font-bold text-white">${movie.title}</h3>
               <div class="flex items-center text-sm text-gray-300 mt-1">
-                <span class="bg-gray-800 px-2 py-1 rounded mr-2">${movie.year}</span>
+                <span class="bg-gray-800 px-2 py-1 rounded mr-2">${movie.year || ''}</span>
                 <span class="bg-gray-800 px-2 py-1 rounded flex items-center">
                   <i class="fas ${movie.category === 'short' ? 'fa-clock' : 'fa-film'} text-xs mr-1"></i>
                   ${movie.category === 'short' ? 'Short' : 'Feature'}
@@ -409,62 +421,236 @@
             </div>
           </div>
         `;
-        
+        // click handler uses current filtered array to determine index
         div.onclick = () => handleMovieClick(movie);
-        
         container.appendChild(div);
       });
     }
-    
-    // Filter movies based on search and category
-    function filterMovies() {
-      const filtered = movies.filter(movie => {
-        const matchesSearch = movie.title.toLowerCase().includes(currentSearch);
-        const matchesCategory = currentCategory === 'all' || movie.category === currentCategory;
-        return matchesSearch && matchesCategory;
-      });
-      
-      displayMovies(filtered);
+
+    function filterMoviesAndRender() {
+      filteredCache = getFilteredMovies();
+      displayMovies(filteredCache);
     }
-    
-    // Event listeners
+
+    // ----- movie click handling -----
+    function handleMovieClick(movie) {
+      // find index in current filtered list
+      const idx = filteredCache.findIndex(m => m.title === movie.title && m.year === movie.year);
+      const indexToUse = idx >= 0 ? idx : 0;
+
+      // If stream (m3u8 or txt) and not direct mp4, redirect to player.html
+      const vid = movie.video;
+      // if video is object combine values
+      if (typeof vid === 'object') {
+        const values = Object.values(vid).join(' ');
+        if (isStream(values) && !isMP4(values)) {
+          const url = `player.html?title=${encodeURIComponent(movie.title)}&video=${encodeURIComponent(values)}`;
+          window.location.href = url;
+          return;
+        }
+      } else if (typeof vid === 'string') {
+        if (isStream(vid) && !isMP4(vid)) {
+          const url = `player.html?title=${encodeURIComponent(movie.title)}&video=${encodeURIComponent(vid)}`;
+          window.location.href = url;
+          return;
+        }
+      }
+
+      // else open modal and play
+      playInModal(filteredCache, indexToUse);
+    }
+
+    // ----- Modal / player logic (Marvel-style) -----
+    function playInModal(filteredArray, index) {
+      const movie = filteredArray[index];
+      if (!movie) return showError("Movie not available");
+
+      // prepare quality controls
+      qualityControls.innerHTML = '';
+      if (typeof movie.video === 'object') {
+        const entries = Object.entries(movie.video);
+        entries.forEach(([quality, url]) => {
+          const btn = document.createElement('button');
+          btn.className = 'quality-btn';
+          btn.dataset.quality = quality;
+          btn.dataset.url = url;
+          btn.innerText = quality.toUpperCase();
+          qualityControls.appendChild(btn);
+        });
+      }
+
+      modalTitle.textContent = movie.title || '';
+      modalYear.textContent = movie.year || '';
+      modalRating.textContent = movie.rating || '—';
+
+      let src = '';
+      if (typeof movie.video === 'object') {
+        // pick high/medium/low preference
+        src = movie.video.high || movie.video.medium || movie.video.low || Object.values(movie.video)[0];
+      } else {
+        src = movie.video;
+      }
+
+      // set src & open modal
+      try {
+        modalVideo.pause();
+      } catch (e) {}
+      modalVideo.src = src || '';
+      videoModal.classList.add('active');
+      document.body.style.overflow = 'hidden';
+      currentVideo = { index, movie };
+
+      // Try autoplay, show message if blocked
+      modalVideo.play().catch(err => {
+        showError("Autoplay blocked — click play to start.");
+      });
+
+      updatePrevNextButtons();
+    }
+
+    function updatePrevNextButtons() {
+      if (!currentVideo) { prevBtn.disabled = nextBtn.disabled = true; return; }
+      prevBtn.disabled = currentVideo.index <= 0;
+      nextBtn.disabled = currentVideo.index >= (filteredCache.length - 1);
+    }
+
+    function showError(msg) {
+      playerError.textContent = msg;
+      playerError.classList.remove('hidden');
+      playerError.style.display = 'block';
+      setTimeout(() => {
+        playerError.classList.add('hidden');
+        playerError.style.display = 'none';
+      }, 4000);
+    }
+
+    // controls
+    function closeModal() {
+      modalVideo.pause();
+      modalVideo.src = "";
+      videoModal.classList.remove('active');
+      document.body.style.overflow = '';
+      currentVideo = null;
+    }
+
+    function playNext() {
+      if (!currentVideo) return;
+      if (currentVideo.index < filteredCache.length - 1) {
+        playInModal(filteredCache, currentVideo.index + 1);
+      } else {
+        showError("No next video in this category.");
+      }
+    }
+
+    function playPrevious() {
+      if (!currentVideo) return;
+      if (currentVideo.index > 0) {
+        playInModal(filteredCache, currentVideo.index - 1);
+      } else {
+        showError("No previous video in this category.");
+      }
+    }
+
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        modalVideo.requestFullscreen?.().catch(err => showError("Fullscreen failed: " + (err.message || err)));
+      } else {
+        document.exitFullscreen?.();
+      }
+    }
+
+    function toggleMute() {
+      modalVideo.muted = !modalVideo.muted;
+      muteBtn.innerHTML = modalVideo.muted ? '<i class="fas fa-volume-mute mr-1"></i> Unmute' : '<i class="fas fa-volume-up mr-1"></i> Mute';
+    }
+
+    function togglePlayPause() {
+      if (modalVideo.paused) modalVideo.play().catch(() => showError("Please click play to start."));
+      else modalVideo.pause();
+    }
+
+    function seek(seconds) {
+      try {
+        modalVideo.currentTime = Math.max(0, (modalVideo.currentTime || 0) + seconds);
+      } catch (e) {}
+    }
+
+    // ----- event listeners -----
+    // search and filters
     searchBar.addEventListener('input', function() {
       currentSearch = this.value.toLowerCase();
-      filterMovies();
+      filterMoviesAndRender();
     });
-    
     clearSearch.addEventListener('click', function() {
       searchBar.value = '';
       currentSearch = '';
-      filterMovies();
+      filterMoviesAndRender();
     });
-    
     categoryBtns.forEach(btn => {
       btn.addEventListener('click', function() {
         categoryBtns.forEach(b => b.classList.remove('active'));
         this.classList.add('active');
-        currentCategory = this.dataset.category;
-        filterMovies();
+        currentCategory = this.dataset.category || 'all';
+        filterMoviesAndRender();
       });
     });
-    
-    // Close modal when clicking overlay or close button
-    videoModal.addEventListener('click', function(e) {
-      if (e.target === this || e.target.closest('#close-modal')) {
-        closeVideoModal();
+
+    // modal control buttons
+    closeModalBtn.addEventListener('click', closeModal);
+    prevBtn.addEventListener('click', playPrevious);
+    nextBtn.addEventListener('click', playNext);
+    fullscreenBtn.addEventListener('click', toggleFullscreen);
+    muteBtn.addEventListener('click', toggleMute);
+
+    // quality control click
+    qualityControls.addEventListener('click', (e) => {
+      const target = e.target;
+      if (target.classList.contains('quality-btn')) {
+        const url = target.dataset.url;
+        const currentTime = modalVideo.currentTime || 0;
+        modalVideo.src = url;
+        modalVideo.currentTime = currentTime;
+        modalVideo.play().catch(() => showError("Please click play manually."));
       }
     });
-    
-    // Initialize
+
+    // keyboard shortcuts while modal open
+    document.addEventListener('keydown', (e) => {
+      if (!videoModal.classList.contains('active')) return;
+      const key = e.key.toLowerCase();
+      switch (key) {
+        case 'escape': closeModal(); break;
+        case ' ': e.preventDefault(); togglePlayPause(); break;
+        case 'arrowright': seek(10); break;
+        case 'arrowleft': seek(-10); break;
+        case 'f': toggleFullscreen(); break;
+        case 'm': toggleMute(); break;
+        case 'n': playNext(); break;
+        case 'p': playPrevious(); break;
+      }
+    });
+
+    // hide modal when clicking overlay
+    videoModal.addEventListener('click', (e) => {
+      if (e.target === videoModal) closeModal();
+      if (e.target.closest && e.target.closest('#close-modal')) closeModal();
+    });
+
+    // video error handling
+    modalVideo.addEventListener('error', () => {
+      showError("Failed to load video. It may be blocked or unavailable.");
+    });
+
+    // ----- initialization -----
     window.addEventListener('DOMContentLoaded', () => {
-      // Set default active category
+      // set default active category
       document.querySelector('[data-category="all"]').classList.add('active');
-      
-      // Simulate loading
+
+      // simulate loading
       setTimeout(() => {
         loading.classList.add('hidden');
-        filterMovies();
-      }, 800);
+        filterMoviesAndRender();
+      }, 600);
     });
 </script>
 </body>
