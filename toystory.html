@@ -1,42 +1,605 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Toy Story - Pixar Movie</title>
-  <style>
-    body { margin: 0; background: #000; color: #fff; font-family: sans-serif; text-align: center; }
-    video { width: 90%; max-width: 900px; margin-top: 40px; border-radius: 10px; }
-    .back-button {
-      margin-top: 30px;
-      padding: 10px 20px;
-      background: #c00;
-      color: #fff;
-      text-decoration: none;
-      border-radius: 8px;
+<meta charset="utf-8"/>
+<title>Toy Story</title>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+    
+    :root {
+      --pixar-blue: #1d4ed8;
+      --pixar-yellow: #fbbf24;
+      --pixar-red: #ef4444;
+      --pixar-green: #10b981;
     }
-    .back-button:hover { background: #900; }
-  </style>
-  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
-</head>
-<body>
-  <h1>Toy Story</h1>
-  <video id="video" controls autoplay>
-    <source src="https://s9dz.coombsneils.sbs:443/v4/np/hq5bo/index-f2-v1-a1.txt" type="application/x-mpegURL">
-  </video>
-  <br><a href="index.html" class="back-button">← Back to Pixar Collection</a>
+    
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #111827 0%, #1e293b 100%);
+      color: white;
+      min-height: 100vh;
+    }
+    
+    .movie-card {
+      transition: all 0.3s ease;
+      transform-style: preserve-3d;
+      perspective: 1000px;
+      cursor: pointer;
+    }
+    
+    .movie-card:hover {
+      transform: translateY(-10px) scale(1.03);
+      box-shadow: 0 25px 50px -12px rgba(251, 191, 36, 0.25);
+    }
+    
+    .movie-poster {
+      transition: all 0.5s ease;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+    }
+    
+    .movie-card:hover .movie-poster {
+      transform: rotateY(10deg);
+    }
+    
+    .search-glow {
+      box-shadow: 0 0 15px rgba(251, 191, 36, 0.5);
+    }
+    
+    .pixar-logo {
+      text-shadow: 0 0 10px rgba(251, 191, 36, 0.7);
+    }
+    
+    .category-btn {
+      transition: all 0.2s ease;
+    }
+    
+    .category-btn:hover {
+      transform: scale(1.1);
+    }
+    
+    .category-btn.active {
+      background-color: var(--pixar-yellow);
+      color: #111827;
+    }
+    
+    .loading-spinner {
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    .fade-in {
+      animation: fadeIn 0.5s ease-in;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    
+    ::-webkit-scrollbar-track {
+      background: #1e293b;
+    }
+    
+    ::-webkit-scrollbar-thumb {
+      background: var(--pixar-yellow);
+      border-radius: 4px;
+    }
+    
+    /* Modal styles */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0, 0, 0, 0.9);
+      z-index: 1000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+    }
+    
+    .modal-overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+    
+    .modal-container {
+      width: 90%;
+      max-width: 1000px;
+      background: #1e293b;
+      border-radius: 12px;
+      overflow: hidden;
+      transform: scale(0.9);
+      transition: transform 0.3s ease;
+    }
+    
+    .modal-overlay.active .modal-container {
+      transform: scale(1);
+    }
 
-  <script>
-    var video = document.getElementById('video');
-    if (Hls.isSupported()) {
-      var hls = new Hls();
-      hls.loadSource('https://s9dz.coombsneils.sbs:443/v4/np/hq5bo/index-f2-v1-a1.txt');
-      hls.attachMedia(video);
-      hls.on(Hls.Events.MANIFEST_PARSED, function () {
-        console.log("HLS.js is working and the video is loaded.");
-      });
-    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-      video.src = 'https://s9dz.coombsneils.sbs:443/v4/np/hq5bo/index-f2-v1-a1.txt';
+    /* Controls styling */
+    .quality-btn { cursor: pointer; margin: 0 6px; padding: 6px 10px; border-radius: 6px; background: #374151; color: #fff; }
+    .quality-btn:hover { background: #4b5563; }
+    .control-btn { padding: 8px 12px; border-radius: 6px; background: #111827; color: #fbbf24; border: 1px solid rgba(251,191,36,0.12); }
+    .control-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    /* Responsive adjustments */
+    @media (max-width: 640px) {
+      .movie-card {
+        width: 100%;
+      }
+      
+      .modal-container {
+        width: 95%;
+      }
     }
-  </script>
+  </style>
+</head>
+<body class="pb-16">
+<!-- Header with animated background -->
+<header class="relative overflow-hidden">
+<div class="absolute inset-0 bg-gradient-to-r from-blue-900 via-yellow-600 to-red-900 opacity-20 animate-gradient"></div>
+<div class="container mx-auto px-4 py-8 relative z-10">
+<div class="flex flex-col items-center justify-center text-center mb-8">
+<div class="flex items-center mb-4">
+<i class="fas fa-film text-4xl text-yellow-400 mr-3"></i>
+<h1 class="text-4xl md:text-5xl font-bold pixar-logo">
+<span class="text-yellow-400">PIXAR</span> <span class="text-white">UNIVERSE</span>
+</h1>
+<i class="fas fa-star text-3xl text-yellow-400 ml-3 animate-pulse"></i>
+</div>
+<p class="text-lg text-gray-300 max-w-2xl">
+          Explore the magical world of Pixar's animated masterpieces
+        </p>
+</div>
+</div>
+</header>
+<!-- Main content -->
+<main class="container mx-auto px-4">
+<!-- Search and filter section -->
+<div class="mb-10">
+<div class="relative max-w-2xl mx-auto mb-6">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+<i class="fas fa-search text-yellow-400"></i>
+</div>
+<input class="w-full pl-10 pr-4 py-3 rounded-full bg-gray-800 border border-gray-700 focus:border-yellow-400 focus:ring-2 focus:ring-yellow-400 focus:outline-none transition-all duration-300 text-white search-glow" id="searchBar" placeholder="Search Pixar movies..." type="text"/>
+<div class="absolute inset-y-0 right-0 pr-3 flex items-center">
+<button class="text-gray-400 hover:text-yellow-400" id="clearSearch">
+<i class="fas fa-times"></i>
+</button>
+</div>
+</div>
+<div class="flex flex-wrap justify-center gap-3 mb-8">
+<button class="category-btn px-4 py-2 rounded-full bg-gray-800 text-white hover:bg-yellow-400 hover:text-gray-900" data-category="all">
+
+</div>
+</div>
+<!-- Movies grid -->
+<div class="flex justify-center items-center py-20" id="loading">
+<div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-yellow-400"></div>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6" id="movies"></div>
+<div class="hidden text-center py-16" id="noResults">
+<i class="fas fa-film text-6xl text-gray-600 mb-4"></i>
+<h3 class="text-2xl font-semibold text-gray-300">No movies found</h3>
+<p class="text-gray-500 mt-2">Try adjusting your search or filter</p>
+</div>
+</main>
+<!-- Footer -->
+<footer class="mt-20 py-6 bg-gray-900 bg-opacity-50">
+<div class="container mx-auto px-4 text-center text-gray-400">
+<div class="flex justify-center space-x-6 mb-4">
+<a class="hover:text-yellow-400 transition-colors" href="#">
+<i class="fab fa-facebook-f"></i>
+</a>
+<a class="hover:text-yellow-400 transition-colors" href="#">
+<i class="fab fa-twitter"></i>
+</a>
+<a class="hover:text-yellow-400 transition-colors" href="#">
+<i class="fab fa-instagram"></i>
+</a>
+<a class="hover:text-yellow-400 transition-colors" href="#">
+<i class="fab fa-youtube"></i>
+</a>
+</div>
+<p>© 2023 Pixar Universe. All rights reserved.</p>
+<p class="text-sm mt-2">This is a fan-made project and not affiliated with Pixar Animation Studios.</p>
+</div>
+</footer>
+
+<!-- Upgraded Video Modal (Marvel-style features integrated into Pixar modal) -->
+<div class="modal-overlay" id="video-modal" aria-hidden="true">
+  <div class="modal-container">
+    <div class="relative">
+      <button class="absolute top-4 right-4 z-50 text-white hover:text-yellow-500 text-2xl transition" id="close-modal">
+        <i class="fas fa-times"></i>
+      </button>
+      <div class="aspect-w-16 aspect-h-9">
+        <video class="w-full" controls id="modal-video" playsinline>
+          Your browser does not support the video tag.
+        </video>
+      </div>
+
+      <div class="p-6 text-white">
+        <div class="flex justify-between items-start mb-4">
+          <div>
+            <h3 class="text-2xl font-bold mb-1" id="modal-title"></h3>
+            <div class="text-gray-400 text-sm">
+              <span id="modal-year"></span> • ★ <span id="modal-rating"></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Controls row: Prev / Quality / Mute / Fullscreen / Next -->
+        <div class="flex items-center justify-between gap-4 mt-2">
+          <div>
+            <button id="prevBtn" class="control-btn"><i class="fas fa-step-backward mr-1"></i> Prev</button>
+            <button id="nextBtn" class="control-btn ml-2">Next <i class="fas fa-step-forward ml-1"></i></button>
+          </div>
+
+          <div id="qualityControls" class="flex items-center justify-center"></div>
+
+          <div>
+            <button id="muteBtn" class="control-btn"><i class="fas fa-volume-up mr-1"></i> Mute</button>
+            <button id="fullscreenBtn" class="control-btn ml-2"><i class="fas fa-expand mr-1"></i> Fullscreen</button>
+          </div>
+        </div>
+
+        <div id="playerError" class="hidden bg-red-900 text-white p-2 rounded mt-4 text-center"></div>
+        <div class="text-sm text-gray-400 mt-2">Keyboard: Space=Play/Pause, ←/→ seek, F=Fullscreen, N=Next, P=Prev, M=Mute</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+    // ----- PIXAR movies dataset (kept intact from your uploaded Pixar file) -----
+    const movies = [
+      { title: "Toy Story", video: "https://s9dz.coombsneils.sbs:443/v4/np/hq5bo/index-f2-v1-a1.txt", image: "https://images-cdn.ubuy.co.in/6742c6d683a44b4221024ef9-entertainment-room-decor-toy-story-1.jpg", category: "feature", year: 1995 },
+      { title: "Toy Story 2", video: "https://s9dz.sipeskrlbtrujill.sbs:443/v4/sc/xkfhi/index-f1-v1-a1.txt", image: "https://image.tmdb.org/t/p/original/xVhEI1WCgNCCa5I86AqiwuZoog3.jpg", category: "sequel", year: 1999 },
+      { title: "Toy Story 3", video: "https://smashyplayer.top:443/hls/_Aeg_kfj63Gjjp_17Pt9PA/xq/nc31je1o/mn5jj/tt/index-f2-v1-a1.m3u8", image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQkG34xN0wr4pZgiLpLnfDt65WtXjZP_YOA4SZevisCxmqOyevuU1SojHsFEyBriX7barM&usqp=CAU", category: "sequel", year: 2010 },
+      { title: "Toy Story 4", video: "https://s3ae.cwsspottstcyl.sbs:443/v4/hz/vijsz/index-f2-v1-a1.txt", image: "https://i.pinimg.com/736x/32/f0/c2/32f0c2388f8745c2fa2aab3609355116.jpg", category: "sequel", year: 2019 },
+      { title: "Toy Story That Time Forgot", video: "https://s3ae.desrocherswick.sbs/v4/ck/xujkt/index-f2-v1-a1.txt", image: "https://i.pinimg.com/736x/ac/c7/b9/acc7b968fea622f39032d123b5a04497.jpg", category: "short", year: 2014 },
+      { title: "Toy Story of Terror!", video: "https://skra.wesleykqpg.sbs:443/v4/61/r1t1k/index-f1-v1-a1.txt", image: "https://image.tmdb.org/t/p/original/oPBEnNP4Fg4gv9c0KBhchmtoG4H.jpg", category: "short", year: 2013 },
+      ];
+
+    // ----- DOM elements -----
+    const container = document.getElementById('movies');
+    const searchBar = document.getElementById('searchBar');
+    const clearSearch = document.getElementById('clearSearch');
+    const categoryBtns = document.querySelectorAll('.category-btn');
+    const loading = document.getElementById('loading');
+    const noResults = document.getElementById('noResults');
+
+    // Modal elements (upgraded)
+    const videoModal = document.getElementById('video-modal');
+    const modalVideo = document.getElementById('modal-video');
+    const modalTitle = document.getElementById('modal-title');
+    const modalYear = document.getElementById('modal-year');
+    const modalRating = document.getElementById('modal-rating');
+    const closeModalBtn = document.getElementById('close-modal');
+    const qualityControls = document.getElementById('qualityControls');
+    const playerError = document.getElementById('playerError');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const fullscreenBtn = document.getElementById('fullscreenBtn');
+    const muteBtn = document.getElementById('muteBtn');
+
+    // ----- state -----
+    let currentCategory = 'all';
+    let currentSearch = '';
+    let filteredCache = []; // current filtered array
+    let currentVideo = null; // { index: number, movie: {} }
+
+    // ----- helpers -----
+    function isMP4(url) {
+      return /\.mp4($|\?)/i.test(url);
+    }
+    function isStream(url) {
+      return /\.(m3u8|txt)($|\?)/i.test(url);
+    }
+
+    function getFilteredMovies() {
+      const search = (currentSearch || '').trim().toLowerCase();
+      let res = movies.filter(m => {
+        const matchesCategory = currentCategory === 'all' || m.category === currentCategory;
+        const matchesSearch = !search || m.title.toLowerCase().includes(search);
+        return matchesCategory && matchesSearch;
+      });
+      // sort by year asc as in original
+      res.sort((a,b) => (a.year||0) - (b.year||0));
+      return res;
+    }
+
+    // ----- render functions -----
+    function displayMovies(list) {
+      container.innerHTML = '';
+
+      if (!list || list.length === 0) {
+        noResults.classList.remove('hidden');
+        return;
+      }
+      noResults.classList.add('hidden');
+
+      list.forEach((movie, index) => {
+        const delay = (index % 10) * 0.05;
+        const div = document.createElement('div');
+        div.className = 'movie-card fade-in';
+        div.style.animationDelay = `${delay}s`;
+        div.innerHTML = `
+          <div class="relative overflow-hidden rounded-xl h-full">
+            <img 
+              src="${movie.image}" 
+              alt="${movie.title}" 
+              class="movie-poster w-full h-80 object-cover rounded-xl"
+              loading="lazy"
+            >
+            <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-4 pt-10">
+              <h3 class="text-lg font-bold text-white">${movie.title}</h3>
+              <div class="flex items-center text-sm text-gray-300 mt-1">
+                <span class="bg-gray-800 px-2 py-1 rounded mr-2">${movie.year || ''}</span>
+                <span class="bg-gray-800 px-2 py-1 rounded flex items-center">
+                  <i class="fas ${movie.category === 'short' ? 'fa-clock' : 'fa-film'} text-xs mr-1"></i>
+                  ${movie.category === 'short' ? 'Short' : 'Feature'}
+                </span>
+              </div>
+            </div>
+            <div class="absolute top-2 right-2 bg-yellow-400 text-gray-900 px-2 py-1 rounded-full text-xs font-bold">
+              PIXAR
+            </div>
+            <div class="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity duration-300 bg-black bg-opacity-50">
+              <i class="fas fa-play text-4xl text-yellow-400"></i>
+            </div>
+          </div>
+        `;
+        // click handler uses current filtered array to determine index
+        div.onclick = () => handleMovieClick(movie);
+        container.appendChild(div);
+      });
+    }
+
+    function filterMoviesAndRender() {
+      filteredCache = getFilteredMovies();
+      displayMovies(filteredCache);
+    }
+
+    // ----- movie click handling -----
+    function handleMovieClick(movie) {
+      // find index in current filtered list
+      const idx = filteredCache.findIndex(m => m.title === movie.title && m.year === movie.year);
+      const indexToUse = idx >= 0 ? idx : 0;
+
+      // If stream (m3u8 or txt) and not direct mp4, redirect to player.html
+      const vid = movie.video;
+      // if video is object combine values
+      if (typeof vid === 'object') {
+        const values = Object.values(vid).join(' ');
+        if (isStream(values) && !isMP4(values)) {
+          const url = `player.html?title=${encodeURIComponent(movie.title)}&video=${encodeURIComponent(values)}`;
+          window.location.href = url;
+          return;
+        }
+      } else if (typeof vid === 'string') {
+        if (isStream(vid) && !isMP4(vid)) {
+          const url = `player.html?title=${encodeURIComponent(movie.title)}&video=${encodeURIComponent(vid)}`;
+          window.location.href = url;
+          return;
+        }
+      }
+
+      // else open modal and play
+      playInModal(filteredCache, indexToUse);
+    }
+
+    // ----- Modal / player logic (Marvel-style) -----
+    function playInModal(filteredArray, index) {
+      const movie = filteredArray[index];
+      if (!movie) return showError("Movie not available");
+
+      // prepare quality controls
+      qualityControls.innerHTML = '';
+      if (typeof movie.video === 'object') {
+        const entries = Object.entries(movie.video);
+        entries.forEach(([quality, url]) => {
+          const btn = document.createElement('button');
+          btn.className = 'quality-btn';
+          btn.dataset.quality = quality;
+          btn.dataset.url = url;
+          btn.innerText = quality.toUpperCase();
+          qualityControls.appendChild(btn);
+        });
+      }
+
+      modalTitle.textContent = movie.title || '';
+      modalYear.textContent = movie.year || '';
+      modalRating.textContent = movie.rating || '—';
+
+      let src = '';
+      if (typeof movie.video === 'object') {
+        // pick high/medium/low preference
+        src = movie.video.high || movie.video.medium || movie.video.low || Object.values(movie.video)[0];
+      } else {
+        src = movie.video;
+      }
+
+      // set src & open modal
+      try {
+        modalVideo.pause();
+      } catch (e) {}
+      modalVideo.src = src || '';
+      videoModal.classList.add('active');
+      document.body.style.overflow = 'hidden';
+      currentVideo = { index, movie };
+
+      // Try autoplay, show message if blocked
+      modalVideo.play().catch(err => {
+        showError("Autoplay blocked — click play to start.");
+      });
+
+      updatePrevNextButtons();
+    }
+
+    function updatePrevNextButtons() {
+      if (!currentVideo) { prevBtn.disabled = nextBtn.disabled = true; return; }
+      prevBtn.disabled = currentVideo.index <= 0;
+      nextBtn.disabled = currentVideo.index >= (filteredCache.length - 1);
+    }
+
+    function showError(msg) {
+      playerError.textContent = msg;
+      playerError.classList.remove('hidden');
+      playerError.style.display = 'block';
+      setTimeout(() => {
+        playerError.classList.add('hidden');
+        playerError.style.display = 'none';
+      }, 4000);
+    }
+
+    // controls
+    function closeModal() {
+      modalVideo.pause();
+      modalVideo.src = "";
+      videoModal.classList.remove('active');
+      document.body.style.overflow = '';
+      currentVideo = null;
+    }
+
+    function playNext() {
+      if (!currentVideo) return;
+      if (currentVideo.index < filteredCache.length - 1) {
+        playInModal(filteredCache, currentVideo.index + 1);
+      } else {
+        showError("No next video in this category.");
+      }
+    }
+
+    function playPrevious() {
+      if (!currentVideo) return;
+      if (currentVideo.index > 0) {
+        playInModal(filteredCache, currentVideo.index - 1);
+      } else {
+        showError("No previous video in this category.");
+      }
+    }
+
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        modalVideo.requestFullscreen?.().catch(err => showError("Fullscreen failed: " + (err.message || err)));
+      } else {
+        document.exitFullscreen?.();
+      }
+    }
+
+    function toggleMute() {
+      modalVideo.muted = !modalVideo.muted;
+      muteBtn.innerHTML = modalVideo.muted ? '<i class="fas fa-volume-mute mr-1"></i> Unmute' : '<i class="fas fa-volume-up mr-1"></i> Mute';
+    }
+
+    function togglePlayPause() {
+      if (modalVideo.paused) modalVideo.play().catch(() => showError("Please click play to start."));
+      else modalVideo.pause();
+    }
+
+    function seek(seconds) {
+      try {
+        modalVideo.currentTime = Math.max(0, (modalVideo.currentTime || 0) + seconds);
+      } catch (e) {}
+    }
+
+    // ----- event listeners -----
+    // search and filters
+    searchBar.addEventListener('input', function() {
+      currentSearch = this.value.toLowerCase();
+      filterMoviesAndRender();
+    });
+    clearSearch.addEventListener('click', function() {
+      searchBar.value = '';
+      currentSearch = '';
+      filterMoviesAndRender();
+    });
+    categoryBtns.forEach(btn => {
+      btn.addEventListener('click', function() {
+        categoryBtns.forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        currentCategory = this.dataset.category || 'all';
+        filterMoviesAndRender();
+      });
+    });
+
+    // modal control buttons
+    closeModalBtn.addEventListener('click', closeModal);
+    prevBtn.addEventListener('click', playPrevious);
+    nextBtn.addEventListener('click', playNext);
+    fullscreenBtn.addEventListener('click', toggleFullscreen);
+    muteBtn.addEventListener('click', toggleMute);
+
+    // quality control click
+    qualityControls.addEventListener('click', (e) => {
+      const target = e.target;
+      if (target.classList.contains('quality-btn')) {
+        const url = target.dataset.url;
+        const currentTime = modalVideo.currentTime || 0;
+        modalVideo.src = url;
+        modalVideo.currentTime = currentTime;
+        modalVideo.play().catch(() => showError("Please click play manually."));
+      }
+    });
+
+    // keyboard shortcuts while modal open
+    document.addEventListener('keydown', (e) => {
+      if (!videoModal.classList.contains('active')) return;
+      const key = e.key.toLowerCase();
+      switch (key) {
+        case 'escape': closeModal(); break;
+        case ' ': e.preventDefault(); togglePlayPause(); break;
+        case 'arrowright': seek(10); break;
+        case 'arrowleft': seek(-10); break;
+        case 'f': toggleFullscreen(); break;
+        case 'm': toggleMute(); break;
+        case 'n': playNext(); break;
+        case 'p': playPrevious(); break;
+      }
+    });
+
+    // hide modal when clicking overlay
+    videoModal.addEventListener('click', (e) => {
+      if (e.target === videoModal) closeModal();
+      if (e.target.closest && e.target.closest('#close-modal')) closeModal();
+    });
+
+    // video error handling
+    modalVideo.addEventListener('error', () => {
+      showError("Failed to load video. It may be blocked or unavailable.");
+    });
+
+    // ----- initialization -----
+    window.addEventListener('DOMContentLoaded', () => {
+      // set default active category
+      document.querySelector('[data-category="all"]').classList.add('active');
+
+      // simulate loading
+      setTimeout(() => {
+        loading.classList.add('hidden');
+        filterMoviesAndRender();
+      }, 600);
+    });
+</script>
 </body>
 </html>
