@@ -153,24 +153,48 @@
   </style>
 </head>
 <body class="pb-16">
-<!-- Header with animated background -->
-<header class="relative overflow-hidden">
-<div class="absolute inset-0 bg-gradient-to-r from-blue-900 via-yellow-600 to-red-900 opacity-20 animate-gradient"></div>
-<div class="container mx-auto px-4 py-8 relative z-10">
-<div class="flex flex-col items-center justify-center text-center mb-8">
-<div class="flex items-center mb-4">
-<i class="fas fa-film text-4xl text-yellow-400 mr-3"></i>
-<h1 class="text-4xl md:text-5xl font-bold pixar-logo">
-<span class="text-yellow-400">PIXAR</span> <span class="text-white">UNIVERSE</span>
-</h1>
-<i class="fas fa-star text-3xl text-yellow-400 ml-3 animate-pulse"></i>
+
+<!-- Full-Width Video Header with Animated Logo -->
+<div class="relative w-full h-[400px] md:h-[500px] overflow-hidden">
+  <!-- YouTube Video Background -->
+  <iframe 
+    src="https://www.youtube.com/embed/wmiIUN-7qhE?autoplay=1&mute=1&loop=1&playlist=wmiIUN-7qhE&controls=0&showinfo=0&modestbranding=1"
+    frameborder="0" 
+    allow="autoplay; fullscreen" 
+    class="absolute top-0 left-0 w-full h-full pointer-events-none">
+  </iframe>
+
+  <!-- Animated Logo at Top-Left -->
+  <img 
+    src="https://upload.wikimedia.org/wikipedia/commons/5/51/Toy_Story_logo.jpg" 
+    alt="Kung Fu Panda Logo" 
+    class="absolute top-4 left-4 h-16 md:h-24 animate-logo z-10"
+  />
 </div>
-<p class="text-lg text-gray-300 max-w-2xl">
-          Explore the magical world of Pixar's animated masterpieces
-        </p>
-</div>
-</div>
-</header>
+
+<style>
+  /* Animated Logo */
+  .animate-logo {
+    animation: float-pulse 3s ease-in-out infinite, glow-logo 2s ease-in-out infinite alternate;
+  }
+
+  @keyframes float-pulse {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+  }
+
+  @keyframes glow-logo {
+    0% { filter: drop-shadow(0 0 2px #fffa65) drop-shadow(0 0 4px #ffba00); }
+    50% { filter: drop-shadow(0 0 6px #fffa65) drop-shadow(0 0 12px #ffba00); }
+    100% { filter: drop-shadow(0 0 2px #fffa65) drop-shadow(0 0 4px #ffba00); }
+  }
+
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .animate-logo { height: 4rem; top: 1rem; left: 1rem; }
+  }
+</style>
+
 <!-- Main content -->
 <main class="container mx-auto px-4">
 <!-- Search and filter section -->
