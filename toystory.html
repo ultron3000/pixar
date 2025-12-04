@@ -6,81 +6,82 @@
 <meta content="width=device-width, initial-scale=1" name="viewport"/>
 <script src="https://cdn.tailwindcss.com"></script>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
+<!-- HLS.js for HLS playback -->
+<script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.1/dist/hls.min.js"></script>
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
     
     :root {
-      --pixar-blue: #1d4ed8;
-      --pixar-yellow: #fbbf24;
-      --pixar-red: #ef4444;
-      --pixar-green: #10b981;
+      --primary: #ffcc00;
+      --secondary: #111827;
+      --accent: #f59e0b;
+      --muted: #9CA3AF;
     }
     
     body {
       font-family: 'Poppins', sans-serif;
-      background: linear-gradient(135deg, #111827 0%, #1e293b 100%);
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
       color: white;
       min-height: 100vh;
+      margin: 0;
+      padding: 0;
+      overflow-x: hidden;
+    }
+    
+    .scrollbar-hide::-webkit-scrollbar {
+      display: none;
+    }
+    
+    .scrollbar-hide {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
     }
     
     .movie-card {
-      transition: all 0.3s ease;
-      transform-style: preserve-3d;
-      perspective: 1000px;
-      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      transform-origin: center;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
     }
     
     .movie-card:hover {
-      transform: translateY(-10px) scale(1.03);
-      box-shadow: 0 25px 50px -12px rgba(251, 191, 36, 0.25);
+      transform: translateY(-8px) scale(1.03);
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    }
+    
+    .search-input {
+      transition: all 0.3s ease;
+      backdrop-filter: blur(10px);
+    }
+    
+    .search-input:focus {
+      box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.5);
+    }
+    
+    .header-glow {
+      text-shadow: 0 0 10px rgba(255, 204, 0, 0.7);
     }
     
     .movie-poster {
-      transition: all 0.5s ease;
-      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+      aspect-ratio: 2/3;
+      transition: transform 0.5s ease;
     }
     
     .movie-card:hover .movie-poster {
-      transform: rotateY(10deg);
+      transform: scale(1.05);
     }
     
-    .search-glow {
-      box-shadow: 0 0 15px rgba(251, 191, 36, 0.5);
+    .category-tab {
+      transition: all 0.3s ease;
     }
     
-    .pixar-logo {
-      text-shadow: 0 0 10px rgba(251, 191, 36, 0.7);
+    .category-tab:hover {
+      transform: translateY(-2px);
     }
     
-    .category-btn {
-      transition: all 0.2s ease;
-    }
-    
-    .category-btn:hover {
-      transform: scale(1.1);
-    }
-    
-    .category-btn.active {
-      background-color: var(--pixar-yellow);
-      color: #111827;
-    }
-    
-    .loading-spinner {
-      animation: spin 1s linear infinite;
-    }
-    
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-    
-    .fade-in {
-      animation: fadeIn 0.5s ease-in;
-    }
-    
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
+    .category-tab.active {
+      background-color: var(--primary);
+      color: var(--secondary);
+      font-weight: 600;
     }
     
     /* Custom scrollbar */
@@ -94,71 +95,78 @@
     }
     
     ::-webkit-scrollbar-thumb {
-      background: var(--pixar-yellow);
-      border-radius: 4px;
+      background: #ffcc00;
+      border-radius: 10px;
     }
     
-    /* Modal styles */
-    .modal-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background-color: rgba(0, 0, 0, 0.9);
-      z-index: 1000;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      opacity: 0;
-      visibility: hidden;
-      transition: all 0.3s ease;
+    ::-webkit-scrollbar-thumb:hover {
+      background: #f59e0b;
     }
     
-    .modal-overlay.active {
-      opacity: 1;
-      visibility: visible;
+    /* Animation */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
     }
     
-    .modal-container {
-      width: 90%;
-      max-width: 1000px;
-      background: #1e293b;
-      border-radius: 12px;
-      overflow: hidden;
-      transform: scale(0.9);
-      transition: transform 0.3s ease;
+    .animate-fade-in {
+      animation: fadeIn 0.6s ease forwards;
     }
     
-    .modal-overlay.active .modal-container {
-      transform: scale(1);
+    .delay-100 { animation-delay: 0.1s; }
+    .delay-200 { animation-delay: 0.2s; }
+    .delay-300 { animation-delay: 0.3s; }
+    .delay-400 { animation-delay: 0.4s; }
+    
+    /* Illumination modal styles (keeps modal look consistent) */
+    .modal-backdrop { position:fixed; inset:0; background: rgba(0,0,0,0.9); display:none; align-items:center; justify-content:center; z-index:9999; }
+    .modal-backdrop.active { display:flex; }
+    .modal-card { width:92%; max-width:980px; border-radius:12px; overflow:hidden; background:#0b1220; box-shadow:0 30px 80px rgba(0,0,0,0.7); }
+    .player-wrapper { position:relative; padding-bottom:56.25%; height:0; background:#000; }
+    .player-wrapper video, .player-wrapper iframe { position:absolute; inset:0; width:100%; height:100%; }
+
+    .player-meta { display:flex; justify-content:space-between; gap:12px; padding:14px; color:#ddd; align-items:flex-start; }
+    .player-meta .meta-left { max-width:65%; }
+    .player-meta h3 { margin:0; font-size:1.125rem; }
+    .player-meta p { margin:6px 0 0 0; color:var(--muted); font-size:0.92rem; }
+
+    .controls-row { display:flex; gap:8px; align-items:center; }
+
+    .btn {
+      background:transparent; border:1px solid var(--primary); color:var(--primary);
+      padding:8px 12px; border-radius:8px; cursor:pointer;
+    }
+    .btn:hover { background: rgba(254,209,65,0.06); }
+
+    .hidden { display:none; }
+
+    /* Modal original close button kept hidden (we rely on backdrop & controls) */
+    .modal-close { display:none; }
+
+    /* Modal header fallback for small screens */
+    @media(max-width:640px){
+      .player-meta .meta-left { max-width:55%; }
+      .btn { padding:6px 8px; font-size:0.9rem; }
     }
 
-    /* Controls styling */
-    .quality-btn { cursor: pointer; margin: 0 6px; padding: 6px 10px; border-radius: 6px; background: #374151; color: #fff; }
-    .quality-btn:hover { background: #4b5563; }
-    .control-btn { padding: 8px 12px; border-radius: 6px; background: #111827; color: #fbbf24; border: 1px solid rgba(251,191,36,0.12); }
-    .control-btn:disabled { opacity: 0.45; cursor: not-allowed; }
-
-    /* Responsive adjustments */
-    @media (max-width: 640px) {
-      .movie-card {
-        width: 100%;
-      }
-      
-      .modal-container {
-        width: 95%;
-      }
-    }
+    /* Modal legacy styles (unused) */
+    .modal-overlay { display:none; }
   </style>
 </head>
-<body class="pb-16">
+<body class="relative">
+<!-- Floating stars background -->
+<div class="fixed inset-0 overflow-hidden -z-10">
+<div class="absolute inset-0 bg-gradient-to-b from-transparent to-black/80"></div>
+<div class="stars"></div>
+<div class="stars2"></div>
+</div>
+<div class="container mx-auto px-4 py-8 max-w-7xl">
 
 <!-- Full-Width Video Header with Animated Logo -->
 <div class="relative w-full h-[400px] md:h-[500px] overflow-hidden">
   <!-- YouTube Video Background -->
   <iframe 
-    src="https://www.youtube.com/embed/wmiIUN-7qhE?autoplay=1&mute=1&loop=1&playlist=wmiIUN-7qhE&controls=0&showinfo=0&modestbranding=1"
+    src="https://www.youtube.com/embed/wogrp3GNUM8?autoplay=1&mute=1&loop=1&playlist=wogrp3GNUM8&controls=0&modestbranding=1"
     frameborder="0" 
     allow="autoplay; fullscreen" 
     class="absolute top-0 left-0 w-full h-full pointer-events-none">
@@ -166,8 +174,8 @@
 
   <!-- Animated Logo at Top-Left -->
   <img 
-    src="https://upload.wikimedia.org/wikipedia/commons/5/51/Toy_Story_logo.jpg" 
-    alt="Kung Fu Panda Logo" 
+    src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/0a/Toy_Story_logo.svg/1024px-Toy_Story_logo.svg.png" 
+    alt="Despicable Me Logo" 
     class="absolute top-4 left-4 h-16 md:h-24 animate-logo z-10"
   />
 </div>
@@ -195,108 +203,51 @@
   }
 </style>
 
-<!-- Main content -->
-<main class="container mx-auto px-4">
-<!-- Search and filter section -->
-<div class="mb-10">
-<div class="relative max-w-2xl mx-auto mb-6">
-<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-<i class="fas fa-search text-yellow-400"></i>
-</div>
-<input class="w-full pl-10 pr-4 py-3 rounded-full bg-gray-800 border border-gray-700 focus:border-yellow-400 focus:ring-2 focus:ring-yellow-400 focus:outline-none transition-all duration-300 text-white search-glow" id="searchBar" placeholder="Search Pixar movies..." type="text"/>
-<div class="absolute inset-y-0 right-0 pr-3 flex items-center">
-<button class="text-gray-400 hover:text-yellow-400" id="clearSearch">
-<i class="fas fa-times"></i>
-</button>
 </div>
 </div>
-<div class="flex flex-wrap justify-center gap-3 mb-8">
-<button class="category-btn px-4 py-2 rounded-full bg-gray-800 text-white hover:bg-yellow-400 hover:text-gray-900" data-category="all">
+<!-- Movies Grid -->
+<div class="mb-12">
+<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6" id="movies"></div>
+</div>
+<!-- Footer / Social -->
+  <div class="border-t border-gray-800 mt-8 pt-6 text-center text-gray-500">
+    <a href="#" class="text-gray-400 hover:text-[#c0392b] transition px-2"><i class="fab fa-facebook-f"></i></a>
+    <a href="#" class="text-gray-400 hover:text-[#c0392b] transition px-2"><i class="fab fa-twitter"></i></a>
+    <a href="https://www.instagram.com/stark_4152/reels" class="text-gray-400 hover:text-[#c0392b] transition px-2"><i class="fab fa-instagram"></i></a>
+    <a href="https://www.youtube.com/channel/UCYwTAs1PRVHbq4LnCHEEicw" class="text-gray-400 hover:text-[#c0392b] transition px-2"><i class="fab fa-youtube"></i></a>
+  </div>
+</div>
 
-</div>
-</div>
-<!-- Movies grid -->
-<div class="flex justify-center items-center py-20" id="loading">
-<div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-yellow-400"></div>
-</div>
-<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6" id="movies"></div>
-<div class="hidden text-center py-16" id="noResults">
-<i class="fas fa-film text-6xl text-gray-600 mb-4"></i>
-<h3 class="text-2xl font-semibold text-gray-300">No movies found</h3>
-<p class="text-gray-500 mt-2">Try adjusting your search or filter</p>
-</div>
-</main>
-<!-- Footer -->
-<footer class="mt-20 py-6 bg-gray-900 bg-opacity-50">
-<div class="container mx-auto px-4 text-center text-gray-400">
-<div class="flex justify-center space-x-6 mb-4">
-<a class="hover:text-yellow-400 transition-colors" href="#">
-<i class="fab fa-facebook-f"></i>
-</a>
-<a class="hover:text-yellow-400 transition-colors" href="#">
-<i class="fab fa-twitter"></i>
-</a>
-<a class="hover:text-yellow-400 transition-colors" href="#">
-<i class="fab fa-instagram"></i>
-</a>
-<a class="hover:text-yellow-400 transition-colors" href="#">
-<i class="fab fa-youtube"></i>
-</a>
-</div>
-<p>© 2023 Pixar Universe. All rights reserved.</p>
-<p class="text-sm mt-2">This is a fan-made project and not affiliated with Pixar Animation Studios.</p>
-</div>
-</footer>
+<!-- === REPLACED: Illumination-style Modal Player === -->
+<div id="playbackModal" class="modal-backdrop" aria-hidden="true">
+  <div class="modal-card" role="dialog" aria-modal="true">
+    <div class="player-wrapper" id="playerWrapper">
+      <!-- video or iframe injected here -->
+      <video id="modalVideo" controls playsinline style="width:100%;height:100%;background:#000"></video>
+    </div>
 
-<!-- Upgraded Video Modal (Marvel-style features integrated into Pixar modal) -->
-<div class="modal-overlay" id="video-modal" aria-hidden="true">
-  <div class="modal-container">
-    <div class="relative">
-      <button class="absolute top-4 right-4 z-50 text-white hover:text-yellow-500 text-2xl transition" id="close-modal">
-        <i class="fas fa-times"></i>
-      </button>
-      <div class="aspect-w-16 aspect-h-9">
-        <video class="w-full" controls id="modal-video" playsinline>
-          Your browser does not support the video tag.
-        </video>
+    <div class="player-meta">
+      <div class="meta-left">
+        <h3 id="modalTitle">Title</h3>
+        <p id="modalDesc" class="text-sm"></p>
       </div>
-
-      <div class="p-6 text-white">
-        <div class="flex justify-between items-start mb-4">
-          <div>
-            <h3 class="text-2xl font-bold mb-1" id="modal-title"></h3>
-            <div class="text-gray-400 text-sm">
-              <span id="modal-year"></span> • ★ <span id="modal-rating"></span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Controls row: Prev / Quality / Mute / Fullscreen / Next -->
-        <div class="flex items-center justify-between gap-4 mt-2">
-          <div>
-            <button id="prevBtn" class="control-btn"><i class="fas fa-step-backward mr-1"></i> Prev</button>
-            <button id="nextBtn" class="control-btn ml-2">Next <i class="fas fa-step-forward ml-1"></i></button>
-          </div>
-
-          <div id="qualityControls" class="flex items-center justify-center"></div>
-
-          <div>
-            <button id="muteBtn" class="control-btn"><i class="fas fa-volume-up mr-1"></i> Mute</button>
-            <button id="fullscreenBtn" class="control-btn ml-2"><i class="fas fa-expand mr-1"></i> Fullscreen</button>
-          </div>
-        </div>
-
-        <div id="playerError" class="hidden bg-red-900 text-white p-2 rounded mt-4 text-center"></div>
-        <div class="text-sm text-gray-400 mt-2">Keyboard: Space=Play/Pause, ←/→ seek, F=Fullscreen, N=Next, P=Prev, M=Mute</div>
+      <div class="controls-row">
+        <button id="prevBtn" class="btn"><i class="fas fa-step-backward mr-2"></i>Prev</button>
+        <button id="playPauseBtn" class="btn"><i class="fas fa-play mr-2"></i>Play</button>
+        <button id="nextBtn" class="btn">Next<i class="fas fa-step-forward ml-2"></i></button>
+        <button id="fullscreenBtn" class="btn"><i class="fas fa-expand"></i></button>
+        <button id="muteBtn" class="btn"><i class="fas fa-volume-up"></i></button>
       </div>
     </div>
   </div>
 </div>
 
 <script>
-    // ----- PIXAR movies dataset (kept intact from your uploaded Pixar file) -----
+    /******************************
+     * Existing movies array (unchanged)
+     ******************************/
     const movies = [
-      { title: "Toy Story", video: "https://skra.tavero.cyou:443/v4/np/hq5bo/index-f2-v1-a1.txt", image: "https://images-cdn.ubuy.co.in/6742c6d683a44b4221024ef9-entertainment-room-decor-toy-story-1.jpg", category: "feature", year: 1995 },
+        { title: "Toy Story", video: "https://skra.tavero.cyou:443/v4/np/hq5bo/index-f2-v1-a1.txt", image: "https://images-cdn.ubuy.co.in/6742c6d683a44b4221024ef9-entertainment-room-decor-toy-story-1.jpg", category: "feature", year: 1995 },
       { title: "Toy Story 2", video: "https://sojg.mountainstreamlab.space/v4/sc/xkfhi/index-f1-v1-a1.txt", image: "https://image.tmdb.org/t/p/original/xVhEI1WCgNCCa5I86AqiwuZoog3.jpg", category: "sequel", year: 1999 },
       { title: "Toy Story 3", video: "https://vip.opstream12.com/20220317/3996_964842bf/index.m3u8", image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQkG34xN0wr4pZgiLpLnfDt65WtXjZP_YOA4SZevisCxmqOyevuU1SojHsFEyBriX7barM&usqp=CAU", category: "sequel", year: 2010 },
       { title: "Toy Story 4", video: "https://sxic.terraforgeinnovations.space:443/v4/hz/vijsz/index-f2-v1-a1.txt", image: "https://i.pinimg.com/736x/32/f0/c2/32f0c2388f8745c2fa2aab3609355116.jpg", category: "sequel", year: 2019 },
@@ -304,329 +255,512 @@
       { title: "Toy Story of Terror!", video: "https://sskt.bellavueartfoundation.store:443/v4/61/r1t1k/index-f1-v1-a1.txt", image: "https://image.tmdb.org/t/p/original/oPBEnNP4Fg4gv9c0KBhchmtoG4H.jpg", category: "short", year: 2013 },
       { title: "Partysaurus Rex", video: "https://spuc.skylineinnovationhub.site:443/v4/36/mml8e/index-f2-v1-a1.txt", image: "https://img.rgstatic.com/content/movie/ea692fc3-3bd1-4300-a945-86576dc225d0/poster-342.jpg", category: "short", year: 2012 },
       { title: "Lamp Life", video: "https://s9dz.fiorellagardenshop.shop/v4/pq/jwdtt/index-f1-v1-a1.txt", image: "https://m.media-amazon.com/images/M/MV5BYmQxNzA5YTYtNWZkZi00ZDM1LWFiYjgtMzdmMmJiNjNiMmMyXkEyXkFqcGc@._V1_FMjpg_UX1000_.jpg", category: "short", year: 2020 },
-      
+             
     ];
 
-    // ----- DOM elements -----
-    const container = document.getElementById('movies');
-    const searchBar = document.getElementById('searchBar');
-    const clearSearch = document.getElementById('clearSearch');
-    const categoryBtns = document.querySelectorAll('.category-btn');
-    const loading = document.getElementById('loading');
-    const noResults = document.getElementById('noResults');
+    /******************************
+     * DOM refs for modal controls
+     ******************************/
+    const playbackModal = document.getElementById('playbackModal');
+    const playerWrapper = document.getElementById('playerWrapper');
+    const modalVideoId = 'modalVideo';
+    const modalTitle = document.getElementById('modalTitle');
+    const modalDesc = document.getElementById('modalDesc');
 
-    // Modal elements (upgraded)
-    const videoModal = document.getElementById('video-modal');
-    const modalVideo = document.getElementById('modal-video');
-    const modalTitle = document.getElementById('modal-title');
-    const modalYear = document.getElementById('modal-year');
-    const modalRating = document.getElementById('modal-rating');
-    const closeModalBtn = document.getElementById('close-modal');
-    const qualityControls = document.getElementById('qualityControls');
-    const playerError = document.getElementById('playerError');
     const prevBtn = document.getElementById('prevBtn');
     const nextBtn = document.getElementById('nextBtn');
+    const playPauseBtn = document.getElementById('playPauseBtn');
     const fullscreenBtn = document.getElementById('fullscreenBtn');
     const muteBtn = document.getElementById('muteBtn');
 
-    // ----- state -----
-    let currentCategory = 'all';
-    let currentSearch = '';
-    let filteredCache = []; // current filtered array
-    let currentVideo = null; // { index: number, movie: {} }
+    let currentHls = null;
+    let currentFiltered = [];
+    let currentIndex = null;
 
-    // ----- helpers -----
-    function isMP4(url) {
-      return /\.mp4($|\?)/i.test(url);
+    /******************************
+     * Type detection helpers
+     ******************************/
+    function isMP4(url) { return /\.mp4($|\?)/i.test((url||'')); }
+    function isHls(url) {
+      if (!url) return false;
+      return url.includes('.m3u8') || url.includes('index-') || /index.*\.txt/i.test(url) || url.includes('manifest') || url.includes('master');
     }
-    function isStream(url) {
-      return /\.(m3u8|txt)($|\?)/i.test(url);
-    }
-
-    function getFilteredMovies() {
-      const search = (currentSearch || '').trim().toLowerCase();
-      let res = movies.filter(m => {
-        const matchesCategory = currentCategory === 'all' || m.category === currentCategory;
-        const matchesSearch = !search || m.title.toLowerCase().includes(search);
-        return matchesCategory && matchesSearch;
-      });
-      // sort by year asc as in original
-      res.sort((a,b) => (a.year||0) - (b.year||0));
-      return res;
+    function isYouTube(url) {
+      if (!url) return false;
+      return url.includes('youtube.com') || url.includes('youtu.be') || url.includes('youtube-nocookie.com') || url.includes('/embed/');
     }
 
-    // ----- render functions -----
-    function displayMovies(list) {
-      container.innerHTML = '';
+    /******************************
+     * Reset player container
+     ******************************/
+    function resetPlayerContainer() {
+      if (currentHls) {
+        try { currentHls.destroy(); } catch(e) {}
+        currentHls = null;
+      }
+      playerWrapper.innerHTML = `<video id="${modalVideoId}" controls playsinline style="width:100%;height:100%;background:#000"></video>`;
+    }
 
-      if (!list || list.length === 0) {
-        noResults.classList.remove('hidden');
+    function showModal() {
+      playbackModal.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+    function hideModal() {
+      playbackModal.classList.remove('active');
+      document.body.style.overflow = '';
+    }
+
+    function showError(msg) {
+      console.warn(msg);
+    }
+
+    /******************************
+     * Core: open player (Illumination logic)
+     ******************************/
+    function openPlayer(list, index) {
+      if (!Array.isArray(list) || list.length === 0 || index == null || index < 0 || index >= list.length) {
+        showError('Invalid playback request');
         return;
       }
-      noResults.classList.add('hidden');
+      currentFiltered = list;
+      currentIndex = index;
+      const movie = list[index];
+      if (!movie) { showError('Movie missing'); return; }
 
-      list.forEach((movie, index) => {
-        const delay = (index % 10) * 0.05;
-        const div = document.createElement('div');
-        div.className = 'movie-card fade-in';
-        div.style.animationDelay = `${delay}s`;
-        div.innerHTML = `
-          <div class="relative overflow-hidden rounded-xl h-full">
-            <img 
-              src="${movie.image}" 
-              alt="${movie.title}" 
-              class="movie-poster w-full h-80 object-cover rounded-xl"
-              loading="lazy"
-            >
-            <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-4 pt-10">
-              <h3 class="text-lg font-bold text-white">${movie.title}</h3>
-              <div class="flex items-center text-sm text-gray-300 mt-1">
-                <span class="bg-gray-800 px-2 py-1 rounded mr-2">${movie.year || ''}</span>
-                <span class="bg-gray-800 px-2 py-1 rounded flex items-center">
-                  <i class="fas ${movie.category === 'short' ? 'fa-clock' : 'fa-film'} text-xs mr-1"></i>
-                  ${movie.category === 'short' ? 'Short' : 'Feature'}
-                </span>
-              </div>
-            </div>
-            <div class="absolute top-2 right-2 bg-yellow-400 text-gray-900 px-2 py-1 rounded-full text-xs font-bold">
-              PIXAR
-            </div>
-            <div class="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity duration-300 bg-black bg-opacity-50">
-              <i class="fas fa-play text-4xl text-yellow-400"></i>
-            </div>
-          </div>
-        `;
-        // click handler uses current filtered array to determine index
-        div.onclick = () => handleMovieClick(movie);
-        container.appendChild(div);
-      });
-    }
-
-    function filterMoviesAndRender() {
-      filteredCache = getFilteredMovies();
-      displayMovies(filteredCache);
-    }
-
-    // ----- movie click handling -----
-    function handleMovieClick(movie) {
-      // find index in current filtered list
-      const idx = filteredCache.findIndex(m => m.title === movie.title && m.year === movie.year);
-      const indexToUse = idx >= 0 ? idx : 0;
-
-      // If stream (m3u8 or txt) and not direct mp4, redirect to player.html
-      const vid = movie.video;
-      // if video is object combine values
-      if (typeof vid === 'object') {
-        const values = Object.values(vid).join(' ');
-        if (isStream(values) && !isMP4(values)) {
-          const url = `player.html?title=${encodeURIComponent(movie.title)}&video=${encodeURIComponent(values)}`;
-          window.location.href = url;
-          return;
-        }
-      } else if (typeof vid === 'string') {
-        if (isStream(vid) && !isMP4(vid)) {
-          const url = `player.html?title=${encodeURIComponent(movie.title)}&video=${encodeURIComponent(vid)}`;
-          window.location.href = url;
-          return;
-        }
-      }
-
-      // else open modal and play
-      playInModal(filteredCache, indexToUse);
-    }
-
-    // ----- Modal / player logic (Marvel-style) -----
-    function playInModal(filteredArray, index) {
-      const movie = filteredArray[index];
-      if (!movie) return showError("Movie not available");
-
-      // prepare quality controls
-      qualityControls.innerHTML = '';
-      if (typeof movie.video === 'object') {
-        const entries = Object.entries(movie.video);
-        entries.forEach(([quality, url]) => {
-          const btn = document.createElement('button');
-          btn.className = 'quality-btn';
-          btn.dataset.quality = quality;
-          btn.dataset.url = url;
-          btn.innerText = quality.toUpperCase();
-          qualityControls.appendChild(btn);
-        });
-      }
-
+      // metadata
       modalTitle.textContent = movie.title || '';
-      modalYear.textContent = movie.year || '';
-      modalRating.textContent = movie.rating || '—';
+      modalDesc.textContent = movie.description || (movie.title || '');
 
+      // reset & show
+      resetPlayerContainer();
+      showModal();
+
+      // pick src
       let src = '';
-      if (typeof movie.video === 'object') {
-        // pick high/medium/low preference
+      if (typeof movie.video === 'object' && movie.video !== null) {
         src = movie.video.high || movie.video.medium || movie.video.low || Object.values(movie.video)[0];
       } else {
         src = movie.video;
       }
-
-      // set src & open modal
-      try {
-        modalVideo.pause();
-      } catch (e) {}
-      modalVideo.src = src || '';
-      videoModal.classList.add('active');
-      document.body.style.overflow = 'hidden';
-      currentVideo = { index, movie };
-
-      // Try autoplay, show message if blocked
-      modalVideo.play().catch(err => {
-        showError("Autoplay blocked — click play to start.");
-      });
-
-      updatePrevNextButtons();
-    }
-
-    function updatePrevNextButtons() {
-      if (!currentVideo) { prevBtn.disabled = nextBtn.disabled = true; return; }
-      prevBtn.disabled = currentVideo.index <= 0;
-      nextBtn.disabled = currentVideo.index >= (filteredCache.length - 1);
-    }
-
-    function showError(msg) {
-      playerError.textContent = msg;
-      playerError.classList.remove('hidden');
-      playerError.style.display = 'block';
-      setTimeout(() => {
-        playerError.classList.add('hidden');
-        playerError.style.display = 'none';
-      }, 4000);
-    }
-
-    // controls
-    function closeModal() {
-      modalVideo.pause();
-      modalVideo.src = "";
-      videoModal.classList.remove('active');
-      document.body.style.overflow = '';
-      currentVideo = null;
-    }
-
-    function playNext() {
-      if (!currentVideo) return;
-      if (currentVideo.index < filteredCache.length - 1) {
-        playInModal(filteredCache, currentVideo.index + 1);
-      } else {
-        showError("No next video in this category.");
+      if (!src) {
+        showError('No video source');
+        setTimeout(()=> window.location.href = `player.html?title=${encodeURIComponent(movie.title||'')}&video=`, 500);
+        return;
       }
-    }
 
-    function playPrevious() {
-      if (!currentVideo) return;
-      if (currentVideo.index > 0) {
-        playInModal(filteredCache, currentVideo.index - 1);
-      } else {
-        showError("No previous video in this category.");
+      const lc = (src || '').toLowerCase();
+
+      // iframe-hosted common hosts
+      if (lc.includes('streamtape.com') || lc.includes('dood') || lc.includes('vidcdn') || lc.includes('ok.ru') || lc.includes('mega.nz') || lc.includes('openload') || lc.includes('drive.google.com')) {
+        playerWrapper.innerHTML = `<iframe src="${src}" width="100%" height="100%" frameborder="0" allowfullscreen allow="autoplay; encrypted-media"></iframe>`;
+        playPauseBtn.innerHTML = '<i class="fas fa-pause mr-2"></i>Pause';
+        return;
       }
-    }
 
-    function toggleFullscreen() {
-      if (!document.fullscreenElement) {
-        modalVideo.requestFullscreen?.().catch(err => showError("Fullscreen failed: " + (err.message || err)));
-      } else {
-        document.exitFullscreen?.();
+      // youtube
+      if (isYouTube(src)) {
+        let embed = src;
+        try {
+          if (src.includes('watch') && src.includes('v=')) {
+            const v = new URLSearchParams(src.split('?')[1]).get('v');
+            if (v) embed = `https://www.youtube.com/embed/${v}`;
+          } else if (src.includes('youtu.be/')) {
+            const p = src.split('youtu.be/')[1].split(/[?&]/)[0];
+            if (p) embed = `https://www.youtube.com/embed/${p}`;
+          }
+        } catch (e) {}
+        playerWrapper.innerHTML = `<iframe src="${embed}?autoplay=1&modestbranding=1&rel=0" width="100%" height="100%" frameborder="0" allowfullscreen allow="autoplay; encrypted-media"></iframe>`;
+        playPauseBtn.innerHTML = '<i class="fas fa-pause mr-2"></i>Pause';
+        return;
       }
+
+      // HLS
+      if (isHls(src)) {
+        const v = document.getElementById(modalVideoId);
+        if (!v) { showError('Video element missing'); return; }
+        if (window.Hls && Hls.isSupported()) {
+          currentHls = new Hls();
+          try {
+            currentHls.loadSource(src);
+            currentHls.attachMedia(v);
+          } catch (e) { console.warn('HLS attach error', e); }
+          currentHls.on(Hls.Events.MANIFEST_PARSED, function() {
+            v.play().catch(()=>{});
+            playPauseBtn.innerHTML = '<i class="fas fa-pause mr-2"></i>Pause';
+          });
+          currentHls.on(Hls.Events.ERROR, function(event, data) {
+            console.warn('HLS error', data);
+            if (data && data.fatal) {
+              try { currentHls.destroy(); } catch(e){}
+              currentHls = null;
+              showError('HLS fatal error — redirecting to player.html');
+              setTimeout(()=> window.location.href = `player.html?title=${encodeURIComponent(movie.title||'')}&video=${encodeURIComponent(src||'')}`, 700);
+            }
+          });
+        } else if (v.canPlayType && v.canPlayType('application/vnd.apple.mpegurl')) {
+          v.src = src;
+          v.play().catch(()=>{});
+          playPauseBtn.innerHTML = '<i class="fas fa-pause mr-2"></i>Pause';
+        } else {
+          showError('HLS not supported — redirecting to player.html');
+          setTimeout(()=> window.location.href = `player.html?title=${encodeURIComponent(movie.title||'')}&video=${encodeURIComponent(src||'')}`, 700);
+        }
+        return;
+      }
+
+      // MP4
+      if (isMP4(src)) {
+        const v = document.getElementById(modalVideoId);
+        if (!v) { window.location.href = `player.html?title=${encodeURIComponent(movie.title||'')}&video=${encodeURIComponent(src||'')}`; return; }
+        v.src = src;
+        v.play().catch(()=>{});
+        playPauseBtn.innerHTML = '<i class="fas fa-pause mr-2"></i>Pause';
+        return;
+      }
+
+      // fallback
+      window.location.href = `player.html?title=${encodeURIComponent(movie.title||'')}&video=${encodeURIComponent(src||'')}`;
     }
 
-    function toggleMute() {
-      modalVideo.muted = !modalVideo.muted;
-      muteBtn.innerHTML = modalVideo.muted ? '<i class="fas fa-volume-mute mr-1"></i> Unmute' : '<i class="fas fa-volume-up mr-1"></i> Mute';
-    }
-
+    /******************************
+     * Controls
+     ******************************/
     function togglePlayPause() {
-      if (modalVideo.paused) modalVideo.play().catch(() => showError("Please click play to start."));
-      else modalVideo.pause();
+      const v = document.getElementById(modalVideoId);
+      if (!v) return;
+      if (v.paused) {
+        v.play().catch(()=>{});
+        playPauseBtn.innerHTML = '<i class="fas fa-pause mr-2"></i>Pause';
+      } else {
+        v.pause();
+        playPauseBtn.innerHTML = '<i class="fas fa-play mr-2"></i>Play';
+      }
+    }
+    function playNext() {
+      if (!currentFiltered || currentFiltered.length === 0) currentFiltered = movies.slice();
+      if (currentIndex == null) return showError('No current video');
+      if (currentIndex < currentFiltered.length - 1) openPlayer(currentFiltered, currentIndex + 1);
+      else showError('No next video');
+    }
+    function playPrev() {
+      if (!currentFiltered || currentFiltered.length === 0) currentFiltered = movies.slice();
+      if (currentIndex == null) return showError('No current video');
+      if (currentIndex > 0) openPlayer(currentFiltered, currentIndex - 1);
+      else showError('No previous video');
+    }
+    function toggleFullscreen() {
+      const el = document.getElementById(modalVideoId) || playerWrapper.querySelector('iframe');
+      if (!el) return;
+      if (!document.fullscreenElement) {
+        (el.requestFullscreen || playerWrapper.requestFullscreen).call(el).catch(()=> showError('Fullscreen failed'));
+      } else {
+        document.exitFullscreen();
+      }
+    }
+    function toggleMute() {
+      const v = document.getElementById(modalVideoId);
+      if (!v) return;
+      v.muted = !v.muted;
+      muteBtn.innerHTML = v.muted ? '<i class="fas fa-volume-mute"></i>' : '<i class="fas fa-volume-up"></i>';
     }
 
-    function seek(seconds) {
-      try {
-        modalVideo.currentTime = Math.max(0, (modalVideo.currentTime || 0) + seconds);
-      } catch (e) {}
+    /******************************
+     * Close modal & cleanup
+     ******************************/
+    function closeModalHandler() {
+      if (currentHls) {
+        try { currentHls.destroy(); } catch(e) {}
+        currentHls = null;
+      }
+      const v = document.getElementById(modalVideoId);
+      if (v) {
+        try { v.pause(); } catch(e){}
+        try { v.removeAttribute('src'); v.load(); } catch(e){}
+      }
+      resetPlayerContainer();
+      hideModal();
+      currentIndex = null;
+      currentFiltered = [];
+      playPauseBtn.innerHTML = '<i class="fas fa-play mr-2"></i>Play';
     }
 
-    // ----- event listeners -----
-    // search and filters
-    searchBar.addEventListener('input', function() {
-      currentSearch = this.value.toLowerCase();
-      filterMoviesAndRender();
-    });
-    clearSearch.addEventListener('click', function() {
-      searchBar.value = '';
-      currentSearch = '';
-      filterMoviesAndRender();
-    });
-    categoryBtns.forEach(btn => {
-      btn.addEventListener('click', function() {
-        categoryBtns.forEach(b => b.classList.remove('active'));
-        this.classList.add('active');
-        currentCategory = this.dataset.category || 'all';
-        filterMoviesAndRender();
-      });
-    });
-
-    // modal control buttons
-    closeModalBtn.addEventListener('click', closeModal);
-    prevBtn.addEventListener('click', playPrevious);
+    /******************************
+     * Events wiring
+     ******************************/
+    playPauseBtn.addEventListener('click', togglePlayPause);
     nextBtn.addEventListener('click', playNext);
+    prevBtn.addEventListener('click', playPrev);
     fullscreenBtn.addEventListener('click', toggleFullscreen);
     muteBtn.addEventListener('click', toggleMute);
 
-    // quality control click
-    qualityControls.addEventListener('click', (e) => {
-      const target = e.target;
-      if (target.classList.contains('quality-btn')) {
-        const url = target.dataset.url;
-        const currentTime = modalVideo.currentTime || 0;
-        modalVideo.src = url;
-        modalVideo.currentTime = currentTime;
-        modalVideo.play().catch(() => showError("Please click play manually."));
-      }
+    // close by clicking outside
+    playbackModal.addEventListener('click', function(e){
+      if (e.target === playbackModal) closeModalHandler();
     });
 
-    // keyboard shortcuts while modal open
+    // Escape & keyboard
     document.addEventListener('keydown', (e) => {
-      if (!videoModal.classList.contains('active')) return;
-      const key = e.key.toLowerCase();
-      switch (key) {
-        case 'escape': closeModal(); break;
+      if (!playbackModal.classList.contains('active')) return;
+      switch (e.key.toLowerCase()) {
+        case 'escape': closeModalHandler(); break;
         case ' ': e.preventDefault(); togglePlayPause(); break;
-        case 'arrowright': seek(10); break;
-        case 'arrowleft': seek(-10); break;
+        case 'arrowright': { const v = document.getElementById(modalVideoId); if (v) v.currentTime = Math.max(0, v.currentTime + 10); break; }
+        case 'arrowleft': { const v = document.getElementById(modalVideoId); if (v) v.currentTime = Math.max(0, v.currentTime - 10); break; }
         case 'f': toggleFullscreen(); break;
         case 'm': toggleMute(); break;
         case 'n': playNext(); break;
-        case 'p': playPrevious(); break;
+        case 'p': playPrev(); break;
       }
     });
 
-    // hide modal when clicking overlay
-    videoModal.addEventListener('click', (e) => {
-      if (e.target === videoModal) closeModal();
-      if (e.target.closest && e.target.closest('#close-modal')) closeModal();
+    /******************************
+     * Render movies and wire to openPlayer
+     ******************************/
+    const container = document.getElementById('movies');
+
+    function renderMovies(moviesToRender) {
+      container.innerHTML = '';
+      moviesToRender.forEach((movie, index) => {
+        const delayClass = `delay-${(index % 5) * 100}`;
+
+        const div = document.createElement('div');
+        div.className = `movie-card animate-fade-in ${delayClass} rounded-xl overflow-hidden bg-gray-800 hover:bg-gray-700 cursor-pointer relative group`;
+        div.innerHTML = `
+          <div class="relative overflow-hidden rounded-t-lg">
+            <img src="${movie.image}" alt="${movie.title}" class="w-full h-full object-cover movie-poster">
+            <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
+              <button class="bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-bold py-2 px-4 rounded-full transition transform hover:scale-105">
+                <i class="fas fa-play mr-2"></i> Watch Now
+              </button>
+            </div>
+          </div>
+          <div class="p-4">
+            <h3 class="font-semibold text-lg truncate">${movie.title}</h3>
+            <div class="flex justify-between items-center mt-2 text-sm text-gray-400">
+              <span>${movie.year}</span>
+              <span>${movie.duration}</span>
+            </div>
+          </div>
+        `;
+
+        // Open modal and use movies array for prev/next
+        div.addEventListener('click', () => {
+          openPlayer(moviesToRender, index);
+        });
+
+        container.appendChild(div);
+      });
+    }
+
+    // Initial render
+    renderMovies(movies);
+
+    /******************************
+     * Backwards-compatible extras:
+     * Keep original search/category wiring but guard missing elements
+     ******************************/
+    const modalCloseBtn = document.getElementById('modal-close-btn');
+    if (modalCloseBtn) modalCloseBtn.addEventListener('click', closeModalHandler);
+
+    // previous code referenced searchBar; guard that
+    const searchBarEl = document.getElementById('searchBar');
+    if (searchBarEl) {
+      searchBarEl.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase();
+        const filteredMovies = movies.filter(movie => 
+          movie.title.toLowerCase().includes(searchTerm)
+        );
+        renderMovies(filteredMovies);
+      });
+    }
+
+    // Category tabs preservation (guard for existence)
+    document.querySelectorAll('.category-tab').forEach(tab => {
+      tab.addEventListener('click', function() {
+        // Update active tab
+        document.querySelectorAll('.category-tab').forEach(t => t.classList.remove('active'));
+        this.classList.add('active');
+
+        const category = this.dataset.category;
+        let filteredMovies;
+
+        if (category === 'all') {
+          filteredMovies = movies;
+        } else {
+          filteredMovies = movies.filter(movie => (movie.categories || []).includes(category));
+        }
+
+        renderMovies(filteredMovies);
+      });
     });
 
-    // video error handling
-    modalVideo.addEventListener('error', () => {
-      showError("Failed to load video. It may be blocked or unavailable.");
-    });
+    /******************************
+     * Create floating stars background (existing)
+     ******************************/
+    function createStars(container, count, sizeRange, durationRange) {
+      for (let i = 0; i < count; i++) {
+        const star = document.createElement('div');
+        star.className = 'absolute rounded-full bg-white';
 
-    // ----- initialization -----
-    window.addEventListener('DOMContentLoaded', () => {
-      // set default active category
-      document.querySelector('[data-category="all"]').classList.add('active');
+        // Random position
+        const left = Math.random() * 100;
+        const top = Math.random() * 100;
 
-      // simulate loading
-      setTimeout(() => {
-        loading.classList.add('hidden');
-        filterMoviesAndRender();
-      }, 600);
-    });
+        // Random size
+        const size = sizeRange[0] + Math.random() * (sizeRange[1] - sizeRange[0]);
+
+        // Random animation duration
+        const duration = durationRange[0] + Math.random() * (durationRange[1] - durationRange[0]);
+
+        star.style.left = `${left}%`;
+        star.style.top = `${top}%`;
+        star.style.width = `${size}px`;
+        star.style.height = `${size}px`;
+        star.style.opacity = Math.random() * 0.5 + 0.1;
+        star.style.animation = `float ${duration}s infinite ease-in-out alternate`;
+        star.style.animationDelay = `${Math.random() * 5}s`;
+
+        container.appendChild(star);
+      }
+    }
+
+    const starsContainer = document.querySelector('.stars');
+    const starsContainer2 = document.querySelector('.stars2');
+    if (starsContainer) createStars(starsContainer, 50, [1, 3], [5, 15]);
+    if (starsContainer2) createStars(starsContainer2, 30, [2, 4], [10, 20]);
+
+    // Add floating animation
+    const style = document.createElement('style');
+    style.innerHTML = `
+      @keyframes float {
+        0% { transform: translateY(0) translateX(0); }
+        50% { transform: translateY(-20px) translateX(10px); }
+        100% { transform: translateY(0) translateX(0); }
+      }
+    `;
+    document.head.appendChild(style);
+
 </script>
+
+<!-- ============================= -->
+<!--     ADSTERAA GLOBAL BLOCK     -->
+<!-- ============================= -->
+
+<!-- Banner 300x250 (Best placement: under video or anywhere inside content) -->
+<div id="adsterra-banner-container" style="text-align:center; margin:20px 0;">
+    <script type="text/javascript">
+      atOptions = {
+        'key' : '267d846b24a4cdd5fd7ab140783cec90',
+        'format' : 'iframe',
+        'height' : 250,
+        'width' : 300,
+        'params' : {}
+      };
+    </script>
+    <script type="text/javascript" src="//bowlingprosperhalfbrother.com/267d846b24a4cdd5fd7ab140783cec90/invoke.js"></script>
+</div>
+
+
+<!-- Social Bar (Floating bottom widget - high earnings, non-intrusive) -->
+<script type="text/javascript" src="//bowlingprosperhalfbrother.com/42/5b/58/425b58e61b66997ed4519d91d1f2dcf4.js"></script>
+
+
+<!-- PopUnder (fires once per user interaction) - keep LAST -->
+<script type="text/javascript" src="//bowlingprosperhalfbrother.com/2d/95/e8/2d95e8d5c6532307745afa9b1be1162b.js"></script>
+
+<!-- ============================= -->
+<!--     END ADSTERRA BLOCK        -->
+<!-- ============================= -->
+<!-- ===========================
+      EXOCLICK — ALL IN ONE ADS
+     =========================== -->
+
+<!-- DESKTOP POPUNDER -->
+<script type="application/javascript">
+(function() {
+    function randStr(e,t){for(var n="",r=t||"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz",o=0;o<e;o++)n+=r.charAt(Math.floor(Math.random()*r.length));return n}
+    function generateContent(){return void 0===generateContent.val&&(generateContent.val="document.dispatchEvent("+randStr(4*Math.random()+3)+");"),generateContent.val}
+    try{Object.defineProperty(document.currentScript,"innerHTML",{get:generateContent}),Object.defineProperty(document.currentScript,"textContent",{get:generateContent})}catch(e){};
+
+    var adConfig = {
+        "ads_host": "a.pemsrv.com",
+        "syndication_host": "s.pemsrv.com",
+        "idzone": 5788556,
+        "popup_fallback": false,
+        "popup_force": false,
+        "chrome_enabled": true,
+        "new_tab": false,
+        "frequency_period": 720,
+        "frequency_count": 1,
+        "trigger_method": 3,
+        "trigger_class": "",
+        "trigger_delay": 0,
+        "capping_enabled": true,
+        "tcf_enabled": true,
+        "only_inline": false
+    };
+
+    popMagic.init(adConfig);
+})();
+</script>
+
+<!-- DESKTOP INSTANT MESSAGE -->
+<script async type="application/javascript" src="https://a.magsrv.com/ad-provider.js"></script>
+<ins class="eas6a97888e6" data-zoneid="5788558"></ins>
+<script>(AdProvider = window.AdProvider || []).push({"serve": {}});</script>
+
+<!-- DESKTOP STICKY BANNER -->
+<script async type="application/javascript" src="https://a.magsrv.com/ad-provider.js"></script>
+<ins class="eas6a97888e17" data-zoneid="5788560"></ins>
+<script>(AdProvider = window.AdProvider || []).push({"serve": {}});</script>
+
+
+<!-- ===========================
+      MOBILE ADS
+     =========================== -->
+
+<!-- MOBILE POPUNDER -->
+<script type="application/javascript">
+(function() {
+    function randStr(e,t){for(var n="",r=t||"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz",o=0;o<e;o++)n+=r.charAt(Math.floor(Math.random()*r.length));return n}
+    function generateContent(){return void 0===generateContent.val&&(generateContent.val="document.dispatchEvent("+randStr(4*Math.random()+3)+");"),generateContent.val}
+    try{Object.defineProperty(document.currentScript,"innerHTML",{get:generateContent}),Object.defineProperty(document.currentScript,"textContent",{get:generateContent})}catch(e){};
+
+    var adConfig = {
+        "ads_host": "a.pemsrv.com",
+        "syndication_host": "s.pemsrv.com",
+        "idzone": 5788562,
+        "popup_fallback": false,
+        "popup_force": false,
+        "chrome_enabled": true,
+        "new_tab": false,
+        "frequency_period": 720,
+        "frequency_count": 1,
+        "trigger_method": 3,
+        "trigger_class": "",
+        "trigger_delay": 0,
+        "capping_enabled": true,
+        "tcf_enabled": true,
+        "only_inline": false
+    };
+
+    popMagic.init(adConfig);
+})();
+</script>
+
+<!-- MOBILE INSTANT MESSAGE -->
+<script async type="application/javascript" src="https://a.magsrv.com/ad-provider.js"></script>
+<ins class="eas6a97888e14" data-zoneid="5788564"></ins>
+<script>(AdProvider = window.AdProvider || []).push({"serve": {}});</script>
+
+<!-- MOBILE BANNER -->
+<script async type="application/javascript" src="https://a.magsrv.com/ad-provider.js"></script>
+<ins class="eas6a97888e10" data-zoneid="5788566"></ins>
+<script>(AdProvider = window.AdProvider || []).push({"serve": {}});</script>
+
+<!-- ===========================
+      / END EXOCLICK ADS
+     =========================== -->
+    
 </body>
 </html>
